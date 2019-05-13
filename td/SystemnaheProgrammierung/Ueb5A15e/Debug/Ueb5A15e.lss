@@ -1,0 +1,193 @@
+
+Ueb5A15e.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000000d4  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         0000001e  00800060  000000d4  00000148  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .comment      00000030  00000000  00000000  00000166  2**0
+                  CONTENTS, READONLY
+  3 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00000198  2**2
+                  CONTENTS, READONLY
+  4 .debug_aranges 00000050  00000000  00000000  000001d4  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   0000071e  00000000  00000000  00000224  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 0000060b  00000000  00000000  00000942  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   000002f9  00000000  00000000  00000f4d  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  00000068  00000000  00000000  00001248  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    00000324  00000000  00000000  000012b0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    00000088  00000000  00000000  000015d4  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_ranges 00000030  00000000  00000000  0000165c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
+   4:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+   8:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+   c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  10:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  14:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  18:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  1c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  20:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  24:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  28:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  2c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  30:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  34:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  38:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  3c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  40:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  44:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  48:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  4c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  50:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+
+00000054 <__ctors_end>:
+  54:	11 24       	eor	r1, r1
+  56:	1f be       	out	0x3f, r1	; 63
+  58:	cf e5       	ldi	r28, 0x5F	; 95
+  5a:	d8 e0       	ldi	r29, 0x08	; 8
+  5c:	de bf       	out	0x3e, r29	; 62
+  5e:	cd bf       	out	0x3d, r28	; 61
+
+00000060 <__do_copy_data>:
+  60:	10 e0       	ldi	r17, 0x00	; 0
+  62:	a0 e6       	ldi	r26, 0x60	; 96
+  64:	b0 e0       	ldi	r27, 0x00	; 0
+  66:	e4 ed       	ldi	r30, 0xD4	; 212
+  68:	f0 e0       	ldi	r31, 0x00	; 0
+  6a:	02 c0       	rjmp	.+4      	; 0x70 <__do_copy_data+0x10>
+  6c:	05 90       	lpm	r0, Z+
+  6e:	0d 92       	st	X+, r0
+  70:	ae 37       	cpi	r26, 0x7E	; 126
+  72:	b1 07       	cpc	r27, r17
+  74:	d9 f7       	brne	.-10     	; 0x6c <__do_copy_data+0xc>
+  76:	0e 94 41 00 	call	0x82	; 0x82 <main>
+  7a:	0c 94 68 00 	jmp	0xd0	; 0xd0 <_exit>
+
+0000007e <__bad_interrupt>:
+  7e:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+00000082 <main>:
+	
+	unsigned char recChar = '\0'	;
+	char sendbuffer[3] = {'\0','\r','\n'};
+	
+	//I/0 Pins vom B-Register mit LEDs verbunden
+	DDRB = 0xFF;
+  82:	8f ef       	ldi	r24, 0xFF	; 255
+  84:	87 bb       	out	0x17, r24	; 23
+	PORTB = 0xFF;
+  86:	88 bb       	out	0x18, r24	; 24
+	
+	//USART Settings einstellen
+	USART_Init(BAUDRATE);
+  88:	83 e3       	ldi	r24, 0x33	; 51
+  8a:	90 e0       	ldi	r25, 0x00	; 0
+  8c:	0e 94 51 00 	call	0xa2	; 0xa2 <USART_Init>
+		
+	//send
+	while (1) {
+		
+		USART_Transmit("Please send decimal number\r\n");
+  90:	80 e6       	ldi	r24, 0x60	; 96
+  92:	90 e0       	ldi	r25, 0x00	; 0
+  94:	0e 94 58 00 	call	0xb0	; 0xb0 <USART_Transmit>
+		
+		//Warten auf Dezimalzahl (Type im HTERM auf DEC setzen und eine Zahl <255)
+		recChar = USART_Receive();
+  98:	0e 94 64 00 	call	0xc8	; 0xc8 <USART_Receive>
+				
+		//Empfangene Zahl binär anzeigen
+		PORTB = ~recChar;
+  9c:	80 95       	com	r24
+  9e:	88 bb       	out	0x18, r24	; 24
+  a0:	f7 cf       	rjmp	.-18     	; 0x90 <main+0xe>
+
+000000a2 <USART_Init>:
+#define BAUDRATE 51
+
+void USART_Init(unsigned int baud)  {
+	
+	//51 ist 9600 Baud
+	UBRRH = (unsigned char) (baud >> 8); /* Set baud rate */
+  a2:	90 bd       	out	0x20, r25	; 32
+	UBRRL = (unsigned char) baud;
+  a4:	89 b9       	out	0x09, r24	; 9
+
+	UCSRB = (1 << RXEN) | (1 << TXEN) | 1<< RXCIE | (1 << TXCIE); /* Enable rx and tx */
+  a6:	88 ed       	ldi	r24, 0xD8	; 216
+  a8:	8a b9       	out	0x0a, r24	; 10
+	UCSRC = (1 << URSEL) | (1 << UCSZ1) | (1 << UCSZ0); /* Set frame
+  aa:	86 e8       	ldi	r24, 0x86	; 134
+  ac:	80 bd       	out	0x20, r24	; 32
+  ae:	08 95       	ret
+
+000000b0 <USART_Transmit>:
+	format: 8data, 1stop bit, parity none (initial value) */
+	} /* URSEL=1: USCRC, URSEL = 0: UBRRH (initial value) */
+
+
+	void USART_Transmit(char* message) {
+  b0:	fc 01       	movw	r30, r24
+
+		for (int i = 0; message[i] != '\0'; ++i) {
+  b2:	90 81       	ld	r25, Z
+  b4:	99 23       	and	r25, r25
+  b6:	39 f0       	breq	.+14     	; 0xc6 <USART_Transmit+0x16>
+  b8:	31 96       	adiw	r30, 0x01	; 1
+			/* Wait for empty transmit buffer
+			(URDE Date Register Empty Bit ist SET inside the UCSRA Register)*/
+			while (!(UCSRA & (1 << UDRE)));
+  ba:	5d 9b       	sbis	0x0b, 5	; 11
+  bc:	fe cf       	rjmp	.-4      	; 0xba <USART_Transmit+0xa>
+			/* When data is written to the UDR transmit buffer, and the Transmitter
+			is enabled, the Transmitter will load the data into the transmit
+			Shift Register when the Shift Register is empty. Then the data
+			will be serially	transmitted on the TxD pin.
+			UDRE wird vom Controller automatisch geCleared*/
+			UDR = message[i];
+  be:	9c b9       	out	0x0c, r25	; 12
+	} /* URSEL=1: USCRC, URSEL = 0: UBRRH (initial value) */
+
+
+	void USART_Transmit(char* message) {
+
+		for (int i = 0; message[i] != '\0'; ++i) {
+  c0:	91 91       	ld	r25, Z+
+  c2:	91 11       	cpse	r25, r1
+  c4:	fa cf       	rjmp	.-12     	; 0xba <USART_Transmit+0xa>
+  c6:	08 95       	ret
+
+000000c8 <USART_Receive>:
+		RXC flag bit is set when there are unread data in the receive buffer and
+		cleared when the receive buffer is empty (i.e., does not contain any unread data).
+		If the receiver is disabled, the receive buffer will be flushed and consequently
+		the RXC bit will become zero. The RXC Flag can be
+		used to generate a Receive Complete interrupt (see description of the RXCIE bit).*/
+		while ( !(UCSRA & (1<<RXC)) )
+  c8:	5f 9b       	sbis	0x0b, 7	; 11
+  ca:	fe cf       	rjmp	.-4      	; 0xc8 <USART_Receive>
+		;
+		/* Get and return received data from buffer */
+		return UDR;
+  cc:	8c b1       	in	r24, 0x0c	; 12
+	}
+  ce:	08 95       	ret
+
+000000d0 <_exit>:
+  d0:	f8 94       	cli
+
+000000d2 <__stop_program>:
+  d2:	ff cf       	rjmp	.-2      	; 0xd2 <__stop_program>
