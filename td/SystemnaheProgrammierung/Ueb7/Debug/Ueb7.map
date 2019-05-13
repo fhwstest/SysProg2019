@@ -374,7 +374,7 @@ END GROUP
                 0x00000144                i2c_tx
  .text.i2c_data_rx
                 0x0000018c       0x2c main.o
-                0x0000018c                i2c_data_rx
+                0x0000018c                readData
  .text.main     0x000001b8       0x82 main.o
                 0x000001b8                main
  .text.avr-libc

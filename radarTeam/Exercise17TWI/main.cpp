@@ -13,55 +13,20 @@
 #define  TW_SLAW_ACK 0x18
 #define  TW_SLAR_ACK 0x40
 #define  TW_WRITE_ACK 0x28
-#define  TW_READ_ACK 0x50
 
-unsigned char DATA[] = "Ottos Mops Hopst"; //{0x58, 0x00, 0x00, 0x00, 0x00, 0x01}; //CMD24, write block to address 0 0 0 0, (response R1 = 0x00)
+void init();
+void start();
+void stop();
 
-char I2C_tx(uint8_t data, uint8_t successState) {
-    TWDR = data; //CHIP_ADDR //Load SLA_W into TWDR Register.
-    TWCR = (1 << TWINT) | (1 << TWEN); //Clear TWINT bit in TWCR to start transmission
-    while (!(TWCR & (1 << TWINT))) //of address
-        ;
+void writeData(uint8_t data, uint8_t successState, const char *msg);
+uint8_t readData();
 
-    PORTB = ~TWSR;
-
-    return ((TWSR & 0xF8) == successState); // == MT_SLA_ACK, SLA+W has been transmitted; ACK received
-
-}
-
-void I2C_Init() {
-    TWSR = 0x00; //TWPS1 und TWPS0 = 0
-    TWBR = static_cast<uint8_t>(F_CPU / I2C_SCK - 16); //I2C_SCK ist die gewünschte Frequenz
-}
-
-void I2C_Start() {
-    //Send START condition
-    TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
-
-    //Wait for TWINT Flag set. This indicates that the START condition has been transmitted
-    while ((TWCR & (1 << TWINT)) == 0);
-
-    PORTB = ~TWSR;
-
-    //return (TWSR & 0xF8);
-    auto erg = (TWSR & 0xF8);
-
-    char str[100];
-    sprintf(str, "Errorcode: %02X\r\n", erg);
-
-    if (erg != TW_START){
-        UART::writeString(str);
-    }
-
-}
-
-void I2C_Stop() {
-    TWCR = (1 << TWINT) | (1 << TWSTO) | (1 << TWEN);
-
-    PORTB = ~TWSR;
-}
+void printErg(const char* msg, uint8_t code, uint8_t expectedCode);
 
 int main() {
+    constexpr int address = 0;
+    constexpr int data = 0x0b;
+
     //I/0 Pins vom B-Register mit LEDs verbunden
     DDRB = 0xFF;
     PORTB = 0xFF;
@@ -70,31 +35,84 @@ int main() {
     UART::enableSync();
     UART::setBaud(9600);
 
+    init();
+
+    start();
+
     //write data
-    I2C_Init();
-    I2C_Start();
-    UART::writeString("I2C started\r\n");
-    I2C_tx(SLA_W, TW_SLAW_ACK);
+    writeData(SLA_W, TW_SLAW_ACK, "Set in Write Mode");
+    writeData(address, TW_WRITE_ACK, "Set Address");
+    writeData(data, TW_WRITE_ACK, "Write Data");
 
+    stop();
 
-    for (int i = 0; DATA[i] != '\0'; i++) {
-        I2C_tx(DATA[i], TW_WRITE_ACK);
-    }
+    _delay_ms(200);
 
-    UART::writeString("I2C tx ende\r\n");
+    start();
 
-    I2C_Stop();
+    // TODO: Check if needed
+    writeData(SLA_W, TW_SLAW_ACK, "Set in write Mode 2");
+    writeData(address, TW_WRITE_ACK, "Set read Address");
 
-    I2C_Start();
+    // TODO: Check if needed
+    start();
 
-    UART::writeString("I2C started 2\r\n");
+    writeData(SLA_R, TW_SLAR_ACK, "Set in read Mode");
+    readData();
 
-    //read data
-    I2C_tx(SLA_R, TW_SLAR_ACK);
-    I2C_tx(SLA_R, TW_SLAR_ACK);
-    I2C_tx(SLA_R, TW_SLAR_ACK);
-
-
-    return 0;
+    stop();
 }
 
+void init() {
+    TWSR = 0x00; //TWPS1 und TWPS0 = 0
+    TWBR = static_cast<uint8_t>(F_CPU / I2C_SCK - 16); //I2C_SCK ist die gewünschte Frequenz
+}
+
+void start() {
+    //Send START condition
+    TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
+
+    //Wait for TWINT Flag set. This indicates that the START condition has been transmitted
+    while ((TWCR & (1 << TWINT)) == 0);
+
+    uint8_t erg = static_cast<uint8_t>(TWSR & 0xF8);
+
+    printErg("Start", erg, TW_START);
+}
+
+void stop() {
+    TWCR = (1 << TWINT) | (1 << TWSTO) | (1 << TWEN);
+}
+
+void writeData(uint8_t data, uint8_t successState, const char *msg) {
+    TWDR = data; //CHIP_ADDR //Load SLA_W into TWDR Register.
+    TWCR = (1 << TWINT) | (1 << TWEN); //Clear TWINT bit in TWCR to start transmission
+    while (!(TWCR & (1 << TWINT)));
+
+    uint8_t erg = static_cast<uint8_t>(TWSR & 0xF8);
+
+    printErg(msg, erg, successState);
+}
+
+uint8_t readData() {
+    TWCR = (1 << TWINT) | (1 << TWEN);
+    while (!(TWCR & (1 << TWINT)));
+
+    uint8_t data = TWDR;
+
+    char str[100];
+    sprintf(str, "Code: %02X\r\n", data);
+    UART::writeString(str);
+
+    return data;
+}
+
+void printErg(const char *msg, uint8_t code, uint8_t expectedCode) {
+    PORTB = ~code;
+
+    if(code != expectedCode) {
+        char str[200];
+        sprintf(str, "Error - %s: %02X", msg, code);
+        UART::writeString(str);
+    }
+}
