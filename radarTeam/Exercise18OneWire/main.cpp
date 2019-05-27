@@ -17,15 +17,18 @@ void reset() {
 }
 
 void selectDevice() {
+    constexpr int READ_ROM = 0x33;
+    constexpr int MATCH_ROM = 0x55;
+
     constexpr int addressSize = 8;
     uint8_t address[addressSize];
 
     reset();
-    MyOneWire::writeByte(0x33);
+    MyOneWire::writeByte(READ_ROM);
     MyOneWire::readNBytes(address, addressSize);
 
     reset();
-    MyOneWire::writeByte(0x55);
+    MyOneWire::writeByte(MATCH_ROM);
     MyOneWire::writeNBytes(address, addressSize);
 }
 
@@ -34,14 +37,17 @@ bool isBitSet(uint8_t byte, uint8_t i) {
 }
 
 float readTemp() {
+    constexpr int CONVERT_TEMP = 0x44;
+    constexpr int READ_SCRATCHPAD = 0xbe;
+
     constexpr int scratchpadSize = 9;
     uint8_t scratchpad[scratchpadSize];
 
     selectDevice();
-    MyOneWire::writeByte(0x44);
+    MyOneWire::writeByte(CONVERT_TEMP);
 
     selectDevice();
-    MyOneWire::writeByte(0xbe);
+    MyOneWire::writeByte(READ_SCRATCHPAD);
     MyOneWire::readNBytes(scratchpad, scratchpadSize);
 
     float erg = scratchpad[0] >> 1;
