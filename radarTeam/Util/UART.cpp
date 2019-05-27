@@ -7,6 +7,7 @@
 #include <avr/io.h>
 
 #include <stddef.h>
+#include <stdio.h>
 
 void UART::enableSync() {
     //Enable sync UART
@@ -34,9 +35,19 @@ void UART::writeByte(uint8_t byte) {
 void UART::writeString(const char *str) {
     size_t i = 0;
 
-    while(str[i] != '\0') {
+    while (str[i] != '\0') {
         writeByte(static_cast<uint8_t>(str[i++]));
     }
+}
+
+void UART::writeBytesAsString(uint8_t *bytes, int bytesCount) {
+    for (int i = 0; i < bytesCount; i++) {
+        char str[4];
+        sprintf(str, "%02X ", bytes[i]);
+        UART::writeString(str);
+    }
+
+    UART::writeString("\r\n");
 }
 
 uint8_t UART::readByte() {
@@ -47,16 +58,16 @@ uint8_t UART::readByte() {
 }
 
 void UART::readNBytes(size_t size, uint8_t *buffer) {
-    for(size_t i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         buffer[i] = readByte();
     }
 }
 
 void UART::readString(char *string, size_t maxStringSize) {
-    for(size_t i = 0; i < maxStringSize; ++i) {
+    for (size_t i = 0; i < maxStringSize; ++i) {
         string[i] = static_cast<char>(readByte());
 
-        if(string[i] == '\0') {
+        if (string[i] == '\0') {
             return;
         }
     }

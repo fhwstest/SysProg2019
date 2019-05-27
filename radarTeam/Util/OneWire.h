@@ -4,7 +4,7 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-template<typename TemSensor, uint8_t OW_PIN>
+template<typename OneWirePort, uint8_t OW_PIN>
 class OneWire {
 
 public:
@@ -12,10 +12,10 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        TemSensor::setAllOutput();
-        TemSensor::writePin(OW_PIN, false);
+        OneWirePort::setAllOutput();
+        OneWirePort::writePin(OW_PIN, false);
         _delay_us(60);
-        TemSensor::writePin(OW_PIN, true);
+        OneWirePort::writePin(OW_PIN, true);
         _delay_us(10);
 
         SREG = sregSave;
@@ -25,10 +25,10 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        TemSensor::setAllOutput();
-        TemSensor::writePin(OW_PIN, false);
+        OneWirePort::setAllOutput();
+        OneWirePort::writePin(OW_PIN, false);
         _delay_us(6);
-        TemSensor::writePin(OW_PIN, true);
+        OneWirePort::writePin(OW_PIN, true);
         _delay_us(64);
 
         SREG = sregSave;
@@ -38,12 +38,12 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        TemSensor::setAllOutput();
-        TemSensor::writePin(OW_PIN, false);
+        OneWirePort::setAllOutput();
+        OneWirePort::writePin(OW_PIN, false);
         _delay_us(6);
-        TemSensor::setAllInput();
+        OneWirePort::setAllInput();
         _delay_us(9);
-        const auto erg = TemSensor::readSinglePin(OW_PIN);
+        const auto erg = OneWirePort::readSinglePin(OW_PIN);
         _delay_us(55);
 
         SREG = sregSave;
@@ -55,17 +55,17 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        TemSensor::setAllOutput();
-        TemSensor::writePin(OW_PIN, false);
+        OneWirePort::setAllOutput();
+        OneWirePort::writePin(OW_PIN, false);
         _delay_us(480);
-        TemSensor::setAllInput();
+        OneWirePort::setAllInput();
         _delay_us(70);
-        const auto erg = TemSensor::readSinglePin(OW_PIN);
+        const auto erg = OneWirePort::readSinglePin(OW_PIN);
         _delay_us(410);
 
         SREG = sregSave;
 
-        return erg;
+        return !erg;
     }
 
     static void writeByte(uint8_t data) {
@@ -77,6 +77,12 @@ public:
             } else {
                 writeBit0();
             }
+        }
+    }
+
+    static void writeNBytes(uint8_t* data, int dataSize) {
+        for(int i = 0; i < dataSize; i++) {
+            writeByte(data[i]);
         }
     }
 
@@ -95,6 +101,14 @@ public:
 
         return data;
     }
+
+
+    static void readNBytes(uint8_t* data, int dataSize) {
+        for(int i = 0; i < dataSize; i++) {
+            data[i] = readByte();
+        }
+    }
+
 
 };
 

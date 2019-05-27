@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-mmcu=atmega32 -Os -save-temps")
-add_definitions(-DF_CPU=1000000)
+add_definitions(-DF_CPU=8000000)
 
 include(FlashableExecutable.cmake)
 
