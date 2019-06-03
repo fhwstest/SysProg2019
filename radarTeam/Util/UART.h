@@ -21,10 +21,12 @@ public:
     static void writeByte(uint8_t byte);
     static void writeString(const char* str);
     static void writeBytesAsString(uint8_t* bytes, int bytesCount);
+    static void printf(const char* format, ...);
 
     static uint8_t readByte();
     static void readNBytes(size_t size, uint8_t *buffer);
     static void readString(char* string, size_t maxStringSize);
+    static void readLine(char *string, size_t maxStringSize);
 
 private:
     static constexpr uint32_t SYSTEM_CLOCK = 8000000;

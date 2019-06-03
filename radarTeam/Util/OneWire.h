@@ -3,19 +3,25 @@
 
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <stddef.h>
 
-template<typename OneWirePort, uint8_t OW_PIN>
+#include "array/Array.h"
+#include "Pins.h"
+
+template<Port OneWirePort, uint8_t OW_PIN>
 class OneWire {
+
+    using OneWirePins = Pins<OneWirePort>;
 
 public:
     static void writeBit0() {
         const auto sregSave = SREG;
         cli();
 
-        OneWirePort::setAllOutput();
-        OneWirePort::writePin(OW_PIN, false);
+        OneWirePins::setAllOutput();
+        OneWirePins::writePin(OW_PIN, false);
         _delay_us(60);
-        OneWirePort::writePin(OW_PIN, true);
+        OneWirePins::writePin(OW_PIN, true);
         _delay_us(10);
 
         SREG = sregSave;
@@ -25,10 +31,10 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        OneWirePort::setAllOutput();
-        OneWirePort::writePin(OW_PIN, false);
+        OneWirePins::setAllOutput();
+        OneWirePins::writePin(OW_PIN, false);
         _delay_us(6);
-        OneWirePort::writePin(OW_PIN, true);
+        OneWirePins::writePin(OW_PIN, true);
         _delay_us(64);
 
         SREG = sregSave;
@@ -38,12 +44,12 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        OneWirePort::setAllOutput();
-        OneWirePort::writePin(OW_PIN, false);
+        OneWirePins::setAllOutput();
+        OneWirePins::writePin(OW_PIN, false);
         _delay_us(6);
-        OneWirePort::setAllInput();
+        OneWirePins::setAllInput();
         _delay_us(9);
-        const auto erg = OneWirePort::readSinglePin(OW_PIN);
+        const auto erg = OneWirePins::readSinglePin(OW_PIN);
         _delay_us(55);
 
         SREG = sregSave;
@@ -51,16 +57,16 @@ public:
         return erg;
     }
 
-    static bool detectPresence() {
+    static bool reset() {
         const auto sregSave = SREG;
         cli();
 
-        OneWirePort::setAllOutput();
-        OneWirePort::writePin(OW_PIN, false);
+        OneWirePins::setAllOutput();
+        OneWirePins::writePin(OW_PIN, false);
         _delay_us(480);
-        OneWirePort::setAllInput();
+        OneWirePins::setAllInput();
         _delay_us(70);
-        const auto erg = OneWirePort::readSinglePin(OW_PIN);
+        const auto erg = OneWirePins::readSinglePin(OW_PIN);
         _delay_us(410);
 
         SREG = sregSave;
@@ -86,6 +92,13 @@ public:
         }
     }
 
+    template <size_t N>
+    static void writeByteArray(const Array<uint8_t, N>& array) {
+        for(auto byte : array) {
+            writeByte(byte);
+        }
+    }
+
     static uint8_t readByte() {
         uint8_t data{};
 
@@ -102,13 +115,22 @@ public:
         return data;
     }
 
-
     static void readNBytes(uint8_t* data, int dataSize) {
         for(int i = 0; i < dataSize; i++) {
             data[i] = readByte();
         }
     }
 
+    template <size_t N>
+    static Array<uint8_t, N> readByteArray() {
+        Array<uint8_t, N> array;
+
+        for(auto& byte : array) {
+            byte = readByte();
+        }
+
+        return array;
+    }
 
 };
 

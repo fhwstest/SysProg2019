@@ -28,6 +28,18 @@ public:
         setTypeByMask(0xff);
     }
 
+    static void setPinInput(uint8_t pin) {
+        const auto currentValue = _SFR_IO8(ddr);
+
+        setTypeByMask(static_cast<uint8_t>(currentValue & ~(1 << pin)));
+    }
+
+    static void setPinOutput(uint8_t pin) {
+        const auto currentValue = _SFR_IO8(ddr);
+
+        setTypeByMask(static_cast<uint8_t>(currentValue | (1 << pin)));
+    }
+
     // Write Value Methods
 
     static void invertCurrentValue() {

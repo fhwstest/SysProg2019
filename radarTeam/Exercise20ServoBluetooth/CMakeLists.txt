@@ -1,0 +1,2 @@
+add_flashable_executable(e20ServoBluetooth main.cpp)
+target_link_libraries(e20ServoBluetooth util)

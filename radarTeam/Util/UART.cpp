@@ -8,6 +8,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 void UART::enableSync() {
     //Enable sync UART
@@ -50,6 +51,19 @@ void UART::writeBytesAsString(uint8_t *bytes, int bytesCount) {
     UART::writeString("\r\n");
 }
 
+void UART::printf(const char *format, ...) {
+    char buffer[256];
+
+    va_list args;
+    va_start (args, format);
+
+    vsprintf (buffer,format, args);
+
+    writeString(buffer);
+
+    va_end (args);
+}
+
 uint8_t UART::readByte() {
     // Wait for data
     while (!(UCSRA & (1 << RXC)));
@@ -68,6 +82,17 @@ void UART::readString(char *string, size_t maxStringSize) {
         string[i] = static_cast<char>(readByte());
 
         if (string[i] == '\0') {
+            return;
+        }
+    }
+}
+
+void UART::readLine(char *string, size_t maxStringSize) {
+    for (size_t i = 0; i < maxStringSize; ++i) {
+        string[i] = static_cast<char>(readByte());
+
+        if (string[i] == '\n') {
+            string[i] = '\0';
             return;
         }
     }
