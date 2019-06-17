@@ -1,0 +1,2 @@
+add_flashable_executable(e25Webserver main.cpp)
+target_link_libraries(e25Webserver util)
