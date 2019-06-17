@@ -11,7 +11,7 @@ constexpr uint8_t ServoPin = 0;
 using ServoPins = Pins<ServoPort>;
 
 constexpr int SERVO_MIN = 815;
-constexpr int SERVO_MAX = 2230;
+constexpr int SERVO_MAX = 2000;
 
 enum class DirectionIndex {
     Left = 1,

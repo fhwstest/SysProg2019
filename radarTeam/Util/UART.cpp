@@ -41,6 +41,17 @@ void UART::writeString(const char *str) {
     }
 }
 
+void UART::writeLineN(const char *str) {
+    writeString(str);
+    writeByte(static_cast<uint8_t>('\n'));
+}
+
+void UART::writeLineRN(const char *str) {
+    writeString(str);
+    writeByte(static_cast<uint8_t>('\r'));
+    writeByte(static_cast<uint8_t>('\n'));
+}
+
 void UART::writeBytesAsString(uint8_t *bytes, int bytesCount) {
     for (int i = 0; i < bytesCount; i++) {
         char str[4];
@@ -92,19 +103,38 @@ void UART::readLine(char *string, size_t maxStringSize) {
         string[i] = static_cast<char>(readByte());
 
         if (string[i] == '\n') {
-            string[i] = '\0';
+            if(i != 0 && string[i-1] == '\r') {
+                string[i-1] = '\0';
+            } else {
+                string[i] = '\0';
+            }
+
             return;
         }
     }
 }
 
-void UART::setBaud(uint16_t baud) {
+String UART::readString() {
+    char str[255];
+    readString(str, 255);
+
+    return String(str);
+}
+
+String UART::readLine() {
+    char str[255];
+    readLine(str, 255);
+
+    return String(str);
+}
+
+void UART::setBaud(uint32_t baud) {
     uint16_t ubrr = calcUbrr(baud);
 
     UBRRH = static_cast<uint8_t >(ubrr >> 8);
     UBRRL = static_cast<uint8_t>(ubrr);
 }
 
-constexpr uint16_t UART::calcUbrr(uint16_t baud) {
-    return SYSTEM_CLOCK / (static_cast<uint32_t >(16) * baud) - 1;
+constexpr uint16_t UART::calcUbrr(uint32_t baud) {
+    return static_cast<uint16_t>(F_CPU / (static_cast<uint32_t >(16) * baud) - 1);
 }

@@ -1,0 +1,2 @@
+add_flashable_executable(e21ServoBluetooth main.cpp)
+target_link_libraries(e21ServoBluetooth util)

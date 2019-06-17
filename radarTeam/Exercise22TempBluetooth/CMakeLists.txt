@@ -1,0 +1,2 @@
+add_flashable_executable(e22TempBluetooth main.cpp)
+target_link_libraries(e22TempBluetooth util)

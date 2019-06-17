@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "String.h"
+
 class UART {
 
 public:
@@ -16,10 +18,12 @@ public:
     static void enableSync();
     static void enableAsync();
 
-    static void setBaud(uint16_t baud);
+    static void setBaud(uint32_t baud);
 
     static void writeByte(uint8_t byte);
     static void writeString(const char* str);
+    static void writeLineN(const char* str);
+    static void writeLineRN(const char* str);
     static void writeBytesAsString(uint8_t* bytes, int bytesCount);
     static void printf(const char* format, ...);
 
@@ -27,11 +31,11 @@ public:
     static void readNBytes(size_t size, uint8_t *buffer);
     static void readString(char* string, size_t maxStringSize);
     static void readLine(char *string, size_t maxStringSize);
+    static String readString();
+    static String readLine();
 
 private:
-    static constexpr uint32_t SYSTEM_CLOCK = 8000000;
-
-    static constexpr uint16_t calcUbrr(uint16_t baud);
+    static constexpr uint16_t calcUbrr(uint32_t baud);
 
 };
 

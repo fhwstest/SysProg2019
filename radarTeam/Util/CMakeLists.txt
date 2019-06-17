@@ -6,6 +6,7 @@ add_library(util STATIC UART.h UART.cpp
                         array/Array.h
                         array/DynamicArray.h
                         array/ArrayIterator.h
-                        TempSensor.h)
+                        TempSensor.h
+                        String.h)
 
 target_include_directories(util INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
