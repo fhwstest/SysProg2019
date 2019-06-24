@@ -1,0 +1,31 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+
+	<title>Hardlab Temperature</title>
+	<meta name="description" content="Hardlab Temperature">
+
+</head>
+
+<body style="background-color: rgb(48, 45, 45)">
+	<h1 style="text-align:center;font-size:64px;color:#5ccadd">
+		Temperature:
+	</h1>
+	<p id="temp" style="text-align: center; font-size:32px; color: rgb(241, 176, 79)">**TEMP** C</p>
+
+	<script type="text/javascript">
+		temp = document.getElementById('temp')
+			while (true) {
+				await fetch('/temp', {
+					method: 'get'
+				}).then(function (d) {
+					temp.innerHTML = d + ' C';
+				});
+			};
+		</script>
+</body>
+
+</html>
