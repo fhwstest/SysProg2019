@@ -94,14 +94,23 @@ public:
 
     String& operator=(const String& other)
     {
-        free(str);
-        str = (char*)  malloc(sizeof(char) * (other.size() + 1));
-        strcpy(str, other.c_str());
+        free(this->str);
+
+        this->str = (char*) malloc(sizeof(char) * (strlen(other.str) + 1));
+        strcpy(this->str, other.str);
 
         return *this;
     }
 
-    String& operator=(String&& other) noexcept = default;
+    String& operator=(String&& other) noexcept
+    {
+        free(this->str);
+
+        this->str = (char*) malloc(sizeof(char) * (strlen(other.str) + 1));
+        strcpy(this->str, other.str);
+
+        return *this;
+    }
 
     bool operator==(const String& other) const
     {

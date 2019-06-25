@@ -7,6 +7,7 @@
 #include <StringBuilder.h>
 #include <TempSensor.h>
 #include <array/Array.h>
+#include <CStringQueue.h>
 
 enum class NewLine {
     None,
@@ -14,14 +15,13 @@ enum class NewLine {
     N
 };
 
-constexpr auto website = "<!doctype html><head><meta charset=\"utf-8\"><title>HardTemp</title></head><body style=\"background-color: rgb(48, 45, 45)\"><h1 style=text-align:center;font-size:64px;color:#5ccadd> Temperature:</h1><p id=t style=text-align:center;font-size:32px;color:rgb(241, 176, 79)></p><script>(async()=>{t=document.getElementById('t');t.innerText=await fetch('/cTemp',{method:'get'})+' °C';while(true){t.innerText=await fetch('/temp',{method:'get'})+' °C';}})();</script></body></html>";
+constexpr auto website = "<html><head><title>Hardlab Temperature</title><meta charset=\"utf-8\"/></head><body style=\"background-color: rgb(48, 45, 45)\"><h1 style=\"text-align:center;font-size:64px;color:#5ccadd\"> Temperature:</h1><p id=\"temp\" style=\"text-align: center; font-size:32px; color: rgb(241, 176, 79)\"></p> <script type=\"text/javascript\">(async()=>{t=document.getElementById('temp');fetch('/cTemp').then(x=>x.text()).then(x=>t.innerText=`${x} °C`);while(true){const x=await(fetch('/temp').then(x=>x.text()));t.innerText=`${x} °C`}})();</script> </body></html>";
 
 using MyTempSensor = TempSensor<Port::C, 0>;
-using LEDs = Pins<Port::B>;
 
 void sendMessageToClient(int id, const String &message, size_t statusCode = 200);
 
-void sendCommandToClient(const String &command, NewLine newLine, const String& requiredResponse);
+void sendCommandToClient(const String &command, NewLine newLine, const String &requiredResponse);
 
 void enableTcpServer();
 
@@ -36,7 +36,9 @@ void closeConnection(int id);
 StringBuilder<200, '\n'> strBuilder;
 Array<int, 20> pollingIds;
 int currentTemp = -1000;
-char lastCommand[100];
+
+CStringQueue responses;
+CStringQueue messages;
 
 void checkForMessage();
 
@@ -45,9 +47,6 @@ int main() {
     UART::enableAsync();
 
     sei();
-
-    LEDs::setAllOutput();
-    LEDs::writeAllHigh();
 
     initAccessPoint("SSIDmitVerstand");
     enableTcpServer();
@@ -63,6 +62,8 @@ int main() {
         }
 
         checkForMessage();
+
+        _delay_ms(1000);
     }
 }
 
@@ -82,7 +83,7 @@ void initPollingIds() {
 }
 
 void sendMessageToClient(int id, const String &message, size_t statusCode) {
-    const String httpHeader = String("HTTP/1.1 ")  + statusCode + "\n\n";
+    const String httpHeader = String("HTTP/1.1 ") + statusCode + "\n\n";
 
     int size = httpHeader.size() + message.size();
 
@@ -100,7 +101,7 @@ void closeConnection(int id) {
     sendCommandToClient(closeCommand + id, NewLine::RN, "OK");
 }
 
-void sendCommandToClient(const String &command, NewLine newLine, const String& requiredResponse) {
+void sendCommandToClient(const String &command, NewLine newLine, const String &requiredResponse) {
     switch (newLine) {
         case NewLine::None:
             UART::writeString(command);
@@ -112,12 +113,21 @@ void sendCommandToClient(const String &command, NewLine newLine, const String& r
             UART::writeLineN(command);
     }
 
-    if(requiredResponse != "") {
-        while (requiredResponse != lastCommand) {
-            _delay_ms(1);
-        }
+    if (requiredResponse != "") {
+        bool responseOK = false;
 
-        lastCommand[0] = '\0';
+        while (!responseOK) {
+            if(!responses.isEmpty()) {
+                String response = responses.peek();
+                responses.deleteFirst();
+
+                if(response.find(requiredResponse) != -1) {
+                    responseOK = true;
+                }
+            }
+
+            _delay_ms(100);
+        }
     }
 }
 
@@ -132,45 +142,48 @@ void initAccessPoint(const String &accessPointName) {
 }
 
 void checkForMessage() {
-    String lastCommandStr = lastCommand;
+    if (messages.isEmpty()) {
+        return;
+    }
 
-    if (lastCommandStr.find("+IPD") != -1) {
-        constexpr int idStart = 5;
-        auto idEnd = (lastCommandStr.substr(idStart).find(","));
-        int id = lastCommandStr.substr(idStart, (size_t) idEnd).to_intger();
+    String lastCommandStr = messages.peek();
+    messages.deleteFirst();
 
-        auto urlStart = lastCommandStr.find(" ") + 1;
-        auto urlEnd = lastCommandStr.substr((size_t) urlStart).find(" ");
-        auto url = lastCommandStr.substr((size_t) urlStart, (size_t) urlEnd);
+    constexpr int idStart = 5;
+    auto idEnd = (lastCommandStr.substr(idStart).find(","));
+    int id = lastCommandStr.substr(idStart, (size_t) idEnd).to_intger();
 
-        if (url == "/") {
-            sendMessageToClient(id, website);
-        }
+    auto urlStart = lastCommandStr.find(" ") + 1;
+    auto urlEnd = lastCommandStr.substr((size_t) urlStart).find(" ");
+    auto url = lastCommandStr.substr((size_t) urlStart, (size_t) urlEnd);
 
-        else if (url == "/temp") {
-            for (int &i : pollingIds) {
-                if (i == -1) {
-                    i = id;
-                    break;
-                }
+    if (url == "/") {
+        sendMessageToClient(id, website);
+    } else if (url == "/temp") {
+        for (int &i : pollingIds) {
+            if (i == -1) {
+                i = id;
+                break;
             }
         }
-
-        else if (url == "/cTemp") {
-            sendMessageToClient(id, currentTemp);
-        }
-
-        else {
-            sendMessageToClient(id, "", 404);
-        }
-
+    } else if (url == "/cTemp") {
+        sendMessageToClient(id, currentTemp);
+    } else {
+        sendMessageToClient(id, "", 404);
     }
+
 }
 
 ISR(USART_RXC_vect) {
     const bool strComplete = strBuilder.add(UDR);
 
     if (strComplete) {
-        strcpy(lastCommand, strBuilder.c_str());
+        String string = strBuilder.c_str();
+
+        if (string.find("+IPD") != -1) {
+            messages.push(string.c_str());
+        } else if (string.find("OK") != -1){
+            responses.push(string.c_str());
+        }
     }
 }
