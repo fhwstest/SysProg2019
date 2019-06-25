@@ -16,9 +16,23 @@ public:
         str[0] = '\0';
     }
 
+    String(int value) {
+        char str[255];
+        itoa(value, str, 10);
+
+        this->str = (char*) malloc(sizeof(char) * (strlen(str) + 1));
+        strcpy(this->str, str);
+    }
+
     String(const char* str) {
         this->str = (char*) malloc(sizeof(char) * (strlen(str) + 1));
         strcpy(this->str, str);
+    }
+
+    String(const char* str, size_t length) {
+        this->str = (char*) malloc(sizeof(char) * (length + 1));
+        memcpy(this->str, str, length);
+        this->str[length] = '\0';
     }
 
     String(const String& other) : String(other.c_str()) {
@@ -36,6 +50,29 @@ public:
 
     const char* c_str() const {
         return str;
+    }
+
+    int32_t find(const String& str) const {
+
+        char* pos = strstr(c_str(), str.c_str());
+
+        if(pos == nullptr) {
+            return -1;
+        }
+
+        return pos - c_str();
+    }
+
+    int to_intger() const {
+        return atoi(str);
+    }
+
+    String substr(size_t start) const {
+        return str + start;
+    }
+
+    String substr(size_t start, size_t length) const {
+        return String(str + start, length);
     }
 
     String& operator+= (const String& other) {
@@ -62,24 +99,28 @@ public:
 
     String& operator=(String&& other) noexcept = default;
 
-    bool operator==(const String& other)
+    bool operator==(const String& other) const
     {
-        return this->c_str() == other.c_str();
+        return strcmp(this->c_str(), other.c_str()) == 0;
     }
 
-    bool operator==(const char* other)
+    bool operator==(const char* other) const
     {
-        return this->c_str() == other;
+        return strcmp(this->c_str(), other) == 0;
     }
 
-    bool operator!=(const String& other)
+    bool operator!=(const String& other) const
     {
-        return this->c_str() != other.c_str();
+        return !(*this == other);
     }
 
-    bool operator!=(const char* other)
+    bool operator!=(const char* other) const
     {
-        return this->c_str() != other;
+        return !(*this == other);
+    }
+
+    char operator[](size_t index) const {
+        return str[index];
     }
 
 private:

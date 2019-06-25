@@ -21,9 +21,9 @@ public:
     static void setBaud(uint32_t baud);
 
     static void writeByte(uint8_t byte);
-    static void writeString(const char* str);
-    static void writeLineN(const char* str);
-    static void writeLineRN(const char* str);
+    static void writeString(const String &str);
+    static void writeLineN(const String &str);
+    static void writeLineRN(const String &str);
     static void writeBytesAsString(uint8_t* bytes, int bytesCount);
     static void printf(const char* format, ...);
 
