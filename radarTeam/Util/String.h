@@ -17,7 +17,7 @@ public:
     }
 
     String(int value) {
-        char str[255];
+        char str[10];
         itoa(value, str, 10);
 
         this->str = (char*) malloc(sizeof(char) * (strlen(str) + 1));
@@ -76,14 +76,18 @@ public:
     }
 
     String& operator+= (const String& other) {
-        char str[255];
+        size_t length = size() + other.size() + 1;
+        char* buffer = (char*) malloc(sizeof(char) * length);
 
-        strcpy(str, this->c_str());
-        strcat(str, other.c_str());
+        strcpy(buffer, this->c_str());
+        strcat(buffer, other.c_str());
 
-        free(this->str);
-        this->str = (char*) malloc(sizeof(char) * (strlen(str) + 1));
-        strcpy(this->str, str);
+        free(str);
+
+        str = (char*) malloc(sizeof(char) * length);
+        strcpy(str, buffer);
+
+        free(buffer);
 
         return *this;
     }
@@ -129,12 +133,18 @@ private:
 };
 
 inline String operator+ (const String& a, const String& b) {
-    char str[255];
+    size_t length = a.size() + b.size() + 1;
 
-    strcpy(str, a.c_str());
-    strcat(str, b.c_str());
+    char* buffer = (char*) malloc(sizeof(char) * length);
 
-    return String(str);
+    strcpy(buffer, a.c_str());
+    strcat(buffer, b.c_str());
+
+    String str = String(buffer);
+
+    free(buffer);
+
+    return str;
 }
 
 #endif //AVR_STRING_H
