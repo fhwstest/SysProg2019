@@ -3,27 +3,30 @@
 <html lang="en">
 
 <head>
-	<meta charset="utf-8">
+    <meta charset="utf-8">
 
-	<title>Hardlab Temperature</title>
-	<meta name="description" content="Hardlab Temperature">
+    <title>Hardlab Temperature</title>
+    <meta name="description" content="Hardlab Temperature">
 
 </head>
 
 <body style="background-color: rgb(48, 45, 45)">
-	<h1 style="text-align:center;font-size:64px;color:#5ccadd">
-		Temperature:
-	</h1>
-	<p id="temp" style="text-align: center; font-size:32px; color: rgb(241, 176, 79)">**TEMP** C</p>
+<h1 style="text-align:center;font-size:64px;color:#5ccadd">
+    Temperature:
+</h1>
+<p id="temp" style="text-align: center; font-size:32px; color: rgb(241, 176, 79)">**TEMP** C</p>
 
-	<script type="text/javascript">
-		(async () => {t = document.getElementById('t')
-		t = await fetch('/cTemp', { method: 'get' }) + ' °C'
-		while (true) {
-			t = await fetch('/temp', { method: 'get' }) + ' °C'
-		}
-		})();
-	</script>
+<script type="text/javascript">
+    (async () => {
+        t = document.getElementById('temp');
+
+        t.innerText = await fetch('/cTemp', {method: 'get'}) + ' °C';
+
+        while (true) {
+            t.innerText  = await fetch('/temp', {method: 'get'}) + ' °C';
+        }
+    })();
+</script>
 </body>
 
 </html>

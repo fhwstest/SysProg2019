@@ -11,7 +11,7 @@
 class String {
 
 public:
-    String() {
+     String() {
         str = (char*) malloc(sizeof(char));
         str[0] = '\0';
     }
@@ -94,9 +94,9 @@ public:
 
     String& operator=(const String& other)
     {
-        free(this->str);
-        str = (char*)  malloc(sizeof(char) * (strlen(other.c_str()) + 1));
-        strcpy(this->str, other.c_str());
+        free(str);
+        str = (char*)  malloc(sizeof(char) * (other.size() + 1));
+        strcpy(str, other.c_str());
 
         return *this;
     }

@@ -10,17 +10,27 @@ class StringBuilder {
 
 public:
     bool add(char c) {
-        if(c != Delimiter) {
+        if(c == '\r') {
+            return false;
+        }
+
+        if(c != Delimiter && currentIndex != BufferSize-1) {
             buffer[currentIndex] = c;
             currentIndex++;
 
-            return false;
+            complete = false;
         } else {
             buffer[currentIndex] = '\0';
             currentIndex = 0;
 
-            return true;
+            complete = true;
         }
+
+        return complete;
+    }
+
+    bool isComplete() const {
+        return complete;
     }
 
     const char* c_str() const {
@@ -28,6 +38,7 @@ public:
     }
 
 private:
+    bool complete = false;
     size_t currentIndex = 0;
     char buffer[BufferSize];
 };
