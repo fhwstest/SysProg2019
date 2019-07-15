@@ -1,0 +1,417 @@
+
+SPISD.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000174  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000012  00800060  00000174  000001e8  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .comment      00000030  00000000  00000000  000001fa  2**0
+                  CONTENTS, READONLY
+  3 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  0000022c  2**2
+                  CONTENTS, READONLY
+  4 .debug_aranges 00000088  00000000  00000000  00000268  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   00000a83  00000000  00000000  000002f0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 00000768  00000000  00000000  00000d73  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   0000053e  00000000  00000000  000014db  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  000000e0  00000000  00000000  00001a1c  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    000003ac  00000000  00000000  00001afc  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    0000021d  00000000  00000000  00001ea8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_ranges 00000068  00000000  00000000  000020c5  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
+   4:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+   8:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+   c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  10:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  14:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  18:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  1c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  20:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  24:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  28:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  2c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  30:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  34:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  38:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  3c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  40:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  44:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  48:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  4c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  50:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+
+00000054 <__ctors_end>:
+  54:	11 24       	eor	r1, r1
+  56:	1f be       	out	0x3f, r1	; 63
+  58:	cf e5       	ldi	r28, 0x5F	; 95
+  5a:	d8 e0       	ldi	r29, 0x08	; 8
+  5c:	de bf       	out	0x3e, r29	; 62
+  5e:	cd bf       	out	0x3d, r28	; 61
+
+00000060 <__do_copy_data>:
+  60:	10 e0       	ldi	r17, 0x00	; 0
+  62:	a0 e6       	ldi	r26, 0x60	; 96
+  64:	b0 e0       	ldi	r27, 0x00	; 0
+  66:	e4 e7       	ldi	r30, 0x74	; 116
+  68:	f1 e0       	ldi	r31, 0x01	; 1
+  6a:	02 c0       	rjmp	.+4      	; 0x70 <__do_copy_data+0x10>
+  6c:	05 90       	lpm	r0, Z+
+  6e:	0d 92       	st	X+, r0
+  70:	a2 37       	cpi	r26, 0x72	; 114
+  72:	b1 07       	cpc	r27, r17
+  74:	d9 f7       	brne	.-10     	; 0x6c <__do_copy_data+0xc>
+  76:	0e 94 9b 00 	call	0x136	; 0x136 <main>
+  7a:	0c 94 b8 00 	jmp	0x170	; 0x170 <_exit>
+
+0000007e <__bad_interrupt>:
+  7e:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+00000082 <spiInit>:
+unsigned char SPIReceive(){
+	while(!(SPSR) & (1<<SPIF)){
+		;
+	}
+	return SPDR;
+}
+  82:	81 e5       	ldi	r24, 0x51	; 81
+  84:	8d b9       	out	0x0d, r24	; 13
+  86:	81 e0       	ldi	r24, 0x01	; 1
+  88:	8e b9       	out	0x0e, r24	; 14
+  8a:	08 95       	ret
+
+0000008c <sdCmmnd>:
+
+
+unsigned char sdCmmnd(unsigned char* CMD, unsigned int cmd_NR){
+  8c:	fc 01       	movw	r30, r24
+	SPITransmit(CMD[0]);
+  8e:	80 81       	ld	r24, Z
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  90:	8f b9       	out	0x0f, r24	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  92:	8e b1       	in	r24, 0x0e	; 14
+}
+
+
+unsigned char sdCmmnd(unsigned char* CMD, unsigned int cmd_NR){
+	SPITransmit(CMD[0]);
+	SPITransmit(CMD[1]);
+  94:	81 81       	ldd	r24, Z+1	; 0x01
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  96:	8f b9       	out	0x0f, r24	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  98:	8e b1       	in	r24, 0x0e	; 14
+
+
+unsigned char sdCmmnd(unsigned char* CMD, unsigned int cmd_NR){
+	SPITransmit(CMD[0]);
+	SPITransmit(CMD[1]);
+	SPITransmit(CMD[2]);
+  9a:	82 81       	ldd	r24, Z+2	; 0x02
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  9c:	8f b9       	out	0x0f, r24	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  9e:	8e b1       	in	r24, 0x0e	; 14
+
+unsigned char sdCmmnd(unsigned char* CMD, unsigned int cmd_NR){
+	SPITransmit(CMD[0]);
+	SPITransmit(CMD[1]);
+	SPITransmit(CMD[2]);
+	SPITransmit(CMD[3]);
+  a0:	83 81       	ldd	r24, Z+3	; 0x03
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  a2:	8f b9       	out	0x0f, r24	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  a4:	8e b1       	in	r24, 0x0e	; 14
+unsigned char sdCmmnd(unsigned char* CMD, unsigned int cmd_NR){
+	SPITransmit(CMD[0]);
+	SPITransmit(CMD[1]);
+	SPITransmit(CMD[2]);
+	SPITransmit(CMD[3]);
+	SPITransmit(CMD[4]);
+  a6:	84 81       	ldd	r24, Z+4	; 0x04
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  a8:	8f b9       	out	0x0f, r24	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  aa:	8e b1       	in	r24, 0x0e	; 14
+	SPITransmit(CMD[0]);
+	SPITransmit(CMD[1]);
+	SPITransmit(CMD[2]);
+	SPITransmit(CMD[3]);
+	SPITransmit(CMD[4]);
+	SPITransmit(CMD[5]);
+  ac:	85 81       	ldd	r24, Z+5	; 0x05
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  ae:	8f b9       	out	0x0f, r24	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  b0:	8e b1       	in	r24, 0x0e	; 14
+	SPITransmit(CMD[4]);
+	SPITransmit(CMD[5]);
+	
+	unsigned char response = 0;
+	
+	if (cmd_NR == 0){
+  b2:	67 2b       	or	r22, r23
+  b4:	41 f4       	brne	.+16     	; 0xc6 <sdCmmnd+0x3a>
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  b6:	9f ef       	ldi	r25, 0xFF	; 255
+  b8:	9f b9       	out	0x0f, r25	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  ba:	8e b1       	in	r24, 0x0e	; 14
+		;
+	}
+}
+
+unsigned char SPIReceive(){
+	while(!(SPSR) & (1<<SPIF)){
+  bc:	8e b1       	in	r24, 0x0e	; 14
+		;
+	}
+	return SPDR;
+  be:	8f b1       	in	r24, 0x0f	; 15
+	if (cmd_NR == 0){
+		do 
+		{
+			SPITransmit(0xFF);
+			response = SPIReceive();
+		} while (response != 0x01);
+  c0:	81 30       	cpi	r24, 0x01	; 1
+  c2:	d1 f7       	brne	.-12     	; 0xb8 <sdCmmnd+0x2c>
+  c4:	08 95       	ret
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  c6:	9f ef       	ldi	r25, 0xFF	; 255
+  c8:	9f b9       	out	0x0f, r25	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  ca:	8e b1       	in	r24, 0x0e	; 14
+		;
+	}
+}
+
+unsigned char SPIReceive(){
+	while(!(SPSR) & (1<<SPIF)){
+  cc:	8e b1       	in	r24, 0x0e	; 14
+		;
+	}
+	return SPDR;
+  ce:	8f b1       	in	r24, 0x0f	; 15
+	else{
+		do
+		{
+			SPITransmit(0xFF);
+			response = SPIReceive();
+		} while (response != 0x00);
+  d0:	81 11       	cpse	r24, r1
+  d2:	fa cf       	rjmp	.-12     	; 0xc8 <sdCmmnd+0x3c>
+	}
+	return response;
+}
+  d4:	08 95       	ret
+
+000000d6 <SDInit>:
+	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
+	SPSR = (1<<SPI2X); 
+}
+
+
+void SDInit(){
+  d6:	cf 93       	push	r28
+	PORTD |= (1 << EN2);
+  d8:	95 9a       	sbi	0x12, 5	; 18
+	PORTD &= ~(1 << EN1);
+  da:	94 98       	cbi	0x12, 4	; 18
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+  dc:	8d e3       	ldi	r24, 0x3D	; 61
+  de:	99 e4       	ldi	r25, 0x49	; 73
+  e0:	01 97       	sbiw	r24, 0x01	; 1
+  e2:	f1 f7       	brne	.-4      	; 0xe0 <SDInit+0xa>
+  e4:	00 c0       	rjmp	.+0      	; 0xe6 <SDInit+0x10>
+  e6:	00 00       	nop
+	_delay_ms(75);
+	PORTD |= (1 << EN1);
+  e8:	94 9a       	sbi	0x12, 4	; 18
+	PORTD &= ~(1 << EN2);
+  ea:	95 98       	cbi	0x12, 5	; 18
+	
+	PORTB |= (1 << SS);
+  ec:	c4 9a       	sbi	0x18, 4	; 24
+  ee:	8a e0       	ldi	r24, 0x0A	; 10
+  f0:	90 e0       	ldi	r25, 0x00	; 0
+		received = sdCmmnd(ACMD41, 141);
+	} while (received != 0x00);
+}
+
+void SPITransmit(unsigned char data){
+	SPDR = data;
+  f2:	2f ef       	ldi	r18, 0xFF	; 255
+  f4:	2f b9       	out	0x0f, r18	; 15
+	while(!(SPSR) & (1<<SPIF)){
+  f6:	3e b1       	in	r19, 0x0e	; 14
+  f8:	01 97       	sbiw	r24, 0x01	; 1
+	PORTD |= (1 << EN1);
+	PORTD &= ~(1 << EN2);
+	
+	PORTB |= (1 << SS);
+	
+	for (unsigned int i = 0; i <10; i++){
+  fa:	e1 f7       	brne	.-8      	; 0xf4 <SDInit+0x1e>
+		SPITransmit(0xFF);
+	}
+	
+	PORTB &= ~(1 << SS);
+  fc:	c4 98       	cbi	0x18, 4	; 24
+	
+	char received;
+	
+	do 
+	{
+		received = sdCmmnd(CMD0, 0);
+  fe:	60 e0       	ldi	r22, 0x00	; 0
+ 100:	70 e0       	ldi	r23, 0x00	; 0
+ 102:	8c e6       	ldi	r24, 0x6C	; 108
+ 104:	90 e0       	ldi	r25, 0x00	; 0
+ 106:	0e 94 46 00 	call	0x8c	; 0x8c <sdCmmnd>
+ 10a:	c8 2f       	mov	r28, r24
+		USART_Transmit('i');
+ 10c:	89 e6       	ldi	r24, 0x69	; 105
+ 10e:	0e 94 b4 00 	call	0x168	; 0x168 <USART_Transmit>
+	} while (received != 0x01);
+ 112:	c1 30       	cpi	r28, 0x01	; 1
+ 114:	a1 f7       	brne	.-24     	; 0xfe <SDInit+0x28>
+	
+	
+	do 
+	{
+		sdCmmnd(CMD55, 55);
+ 116:	67 e3       	ldi	r22, 0x37	; 55
+ 118:	70 e0       	ldi	r23, 0x00	; 0
+ 11a:	86 e6       	ldi	r24, 0x66	; 102
+ 11c:	90 e0       	ldi	r25, 0x00	; 0
+ 11e:	0e 94 46 00 	call	0x8c	; 0x8c <sdCmmnd>
+		received = sdCmmnd(ACMD41, 141);
+ 122:	6d e8       	ldi	r22, 0x8D	; 141
+ 124:	70 e0       	ldi	r23, 0x00	; 0
+ 126:	80 e6       	ldi	r24, 0x60	; 96
+ 128:	90 e0       	ldi	r25, 0x00	; 0
+ 12a:	0e 94 46 00 	call	0x8c	; 0x8c <sdCmmnd>
+	} while (received != 0x00);
+ 12e:	81 11       	cpse	r24, r1
+ 130:	f2 cf       	rjmp	.-28     	; 0x116 <SDInit+0x40>
+}
+ 132:	cf 91       	pop	r28
+ 134:	08 95       	ret
+
+00000136 <main>:
+void read();
+
+
+int main(void)
+{
+	USART_Init(51);
+ 136:	83 e3       	ldi	r24, 0x33	; 51
+ 138:	90 e0       	ldi	r25, 0x00	; 0
+ 13a:	0e 94 ad 00 	call	0x15a	; 0x15a <USART_Init>
+	USART_Transmit('a');
+ 13e:	81 e6       	ldi	r24, 0x61	; 97
+ 140:	0e 94 b4 00 	call	0x168	; 0x168 <USART_Transmit>
+	spiInit();
+ 144:	0e 94 41 00 	call	0x82	; 0x82 <spiInit>
+	USART_Transmit('b');
+ 148:	82 e6       	ldi	r24, 0x62	; 98
+ 14a:	0e 94 b4 00 	call	0x168	; 0x168 <USART_Transmit>
+	SDInit();
+ 14e:	0e 94 6b 00 	call	0xd6	; 0xd6 <SDInit>
+	USART_Transmit('c');
+ 152:	83 e6       	ldi	r24, 0x63	; 99
+ 154:	0e 94 b4 00 	call	0x168	; 0x168 <USART_Transmit>
+ 158:	ff cf       	rjmp	.-2      	; 0x158 <main+0x22>
+
+0000015a <USART_Init>:
+unsigned char USART_Receive(void){
+	while (!(UCSRA &(1<<RXC))){
+		
+	}
+	return UDR;
+}
+ 15a:	90 bd       	out	0x20, r25	; 32
+ 15c:	89 b9       	out	0x09, r24	; 9
+ 15e:	88 e9       	ldi	r24, 0x98	; 152
+ 160:	8a b9       	out	0x0a, r24	; 10
+ 162:	86 e8       	ldi	r24, 0x86	; 134
+ 164:	80 bd       	out	0x20, r24	; 32
+ 166:	08 95       	ret
+
+00000168 <USART_Transmit>:
+
+void USART_Transmit(unsigned char msg){
+	while(!(UCSRA &(1<<UDRE))){
+ 168:	5d 9b       	sbis	0x0b, 5	; 11
+ 16a:	fe cf       	rjmp	.-4      	; 0x168 <USART_Transmit>
+		
+	}
+	UDR = msg;
+ 16c:	8c b9       	out	0x0c, r24	; 12
+ 16e:	08 95       	ret
+
+00000170 <_exit>:
+ 170:	f8 94       	cli
+
+00000172 <__stop_program>:
+ 172:	ff cf       	rjmp	.-2      	; 0x172 <__stop_program>
