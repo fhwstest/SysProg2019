@@ -1,0 +1,33 @@
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <title>Hardlab Temperature</title>
+</head>
+
+<body style="background-color: rgb(48, 45, 45)">
+<h1 style="text-align:center;font-size:64px;color:#5ccadd">
+    Temperature:
+</h1>
+
+<p id="temp" style="text-align: center; font-size:32px; color: rgb(241, 176, 79)"></p>
+
+<script type="text/javascript">
+    (async () => {
+        t = document.getElementById('temp');
+
+        fetch('/cTemp')
+            .then(x => x.text())
+            .then(x => t.innerText = `${x} °C`);
+
+        while (true) {
+            const x = await (fetch('/temp')
+                .then(x => x.text()));
+
+            t.innerText = `${x} °C`
+        }
+    })();
+</script>
+</body>
+
+</html>
