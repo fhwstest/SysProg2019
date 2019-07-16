@@ -1,4 +1,4 @@
-#include <avr/delay.h>
+#include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
@@ -6,41 +6,62 @@
 #include <Pins.h>
 #include <StringBuilder.h>
 #include <TempSensor.h>
-#include <array/Array.h>
-#include <CStringQueue.h>
+#include <Array.h>
+#include <Queue.h>
 
-enum class NewLine {
-    None,
-    RN,
-    N
-};
+#include "NewLine.h"
 
-constexpr auto website = "<html><head><title>Hardlab Temperature</title><meta charset=\"utf-8\"/></head><body style=\"background-color: rgb(48, 45, 45)\"><h1 style=\"text-align:center;font-size:64px;color:#5ccadd\"> Temperature:</h1><p id=\"temp\" style=\"text-align: center; font-size:32px; color: rgb(241, 176, 79)\"></p> <script type=\"text/javascript\">(async()=>{t=document.getElementById('temp');fetch('/cTemp').then(x=>x.text()).then(x=>t.innerText=`${x} °C`);while(true){const x=await(fetch('/temp').then(x=>x.text()));t.innerText=`${x} °C`}})();</script> </body></html>";
+// Forward declarations
+
+void initAccessPoint();
+void enableTcpServer();
+void checkForTemperatureChange();
+void checkForRequest();
+template <size_t StingSize> void sendMessageToClient(int id, const String<StingSize>& message, size_t statusCode = 200);
+template <size_t StingSize> void sendCommandToClient(const String<StingSize>& command, NewLine newLine, const char* requiredResponse);
+
+// Website data
+
+const String website = "<html><head><title>Hardlab Temperature</title>"
+                 "<meta charset=\"utf-8\"/></head><body "
+                 "style=\"background-color: rgb(48, 45, 45)\""
+                 "><h1 style=\"text-align:center;font-size:64px;color"
+                 ":#5ccadd\"> Temperature:</h1><p id=\"temp\" style=\"t"
+                 "ext-align: center; font-size:32px; color: rgb(241, 176, 79)\""
+                 "></p> <script type=\"text/javascript\">(async()=>{t=document.getEle"
+                 "mentById('temp');fetch('/cTemp').then(x=>x.text()).then(x=>t.innerText=`"
+                 "${x} °C`);while(true){const x=await(fetch('/temp').then(x=>x.text()));t."
+                 "innerText=`${x} °C`}})();</script> </body></html>";
+
+// Constants
+
+const String SSID = "SSIDmitVerstand";
+
+constexpr size_t MaxClients = 20;
+constexpr size_t MaxRequestLineSize = 255;
+constexpr size_t MaxRequests = 10;
+constexpr size_t MaxResponses = 10;
+
+constexpr size_t MaxUrlStringSize = 30;
+constexpr size_t MaxIdStringSize = 4;
+constexpr size_t MaxTempStringSize = 5;
+constexpr size_t MaxStatusCodeStringSize = 5;
+constexpr size_t MaxByteSizeStringSize = 5;
+
+// Port and Pin declarations
 
 using MyTempSensor = TempSensor<Port::C, 0>;
 
-void sendMessageToClient(int id, const String &message, size_t statusCode = 200);
+// Object declarations
 
-void sendCommandToClient(const String &command, NewLine newLine, const String &requiredResponse);
+Queue<int, MaxClients> pollingIds;
+int currentTemp;
 
-void enableTcpServer();
+StringBuilder<MaxRequestLineSize, '\n'> strBuilder;
+Queue<String<MaxRequestLineSize>, MaxResponses> responses;
+Queue<String<MaxRequestLineSize>, MaxRequests> requests;
 
-void initAccessPoint(const String &accessPointName);
-
-void initPollingIds();
-
-void sendTempToClients();
-
-void closeConnection(int id);
-
-StringBuilder<200, '\n'> strBuilder;
-Array<int, 20> pollingIds;
-int currentTemp = -1000;
-
-CStringQueue responses;
-CStringQueue messages;
-
-void checkForMessage();
+// Functions
 
 int main() {
     UART::setBaud(9600);
@@ -48,60 +69,96 @@ int main() {
 
     sei();
 
-    initAccessPoint("SSIDmitVerstand");
+    initAccessPoint();
     enableTcpServer();
 
-    initPollingIds();
-
     while (true) {
-        int temp = static_cast<int>(MyTempSensor::readTemp());
-
-        if (temp != currentTemp) {
-            currentTemp = temp;
-            sendTempToClients();
-        }
-
-        checkForMessage();
+        checkForTemperatureChange();
+        checkForRequest();
 
         _delay_ms(1000);
     }
 }
 
-void sendTempToClients() {
-    for (int &i : pollingIds) {
-        if (i != -1) {
-            sendMessageToClient(i, currentTemp);
-            i = -1;
+ISR(USART_RXC_vect) {
+    const bool strComplete = strBuilder.add(UDR);
+
+    if (strComplete) {
+        auto string = strBuilder.get();
+
+        if (string.find("+IPD") != -1) {
+            requests.push(string);
+        } else if (string.find("OK") != -1){
+            responses.push(string);
         }
     }
 }
 
-void initPollingIds() {
-    for (int &i : pollingIds) {
-        i = -1;
+void initAccessPoint() {
+    sendCommandToClient(String("AT+CWMODE=3"), NewLine::RN, "OK");
+    sendCommandToClient(String("AT+CWSAP=\"") + SSID + "\",\"\",1,0", NewLine::RN, "OK");
+}
+
+void enableTcpServer() {
+    sendCommandToClient(String("AT+CIPMUX=1"), NewLine::RN, "OK");
+    sendCommandToClient(String("AT+CIPSERVER=1,80"), NewLine::RN, "OK");
+}
+
+void checkForTemperatureChange() {
+    int temp = static_cast<int>(MyTempSensor::readTemp());
+
+    if (temp != currentTemp) {
+        currentTemp = temp;
+
+        while(!pollingIds.isEmpty()) {
+            sendMessageToClient(pollingIds.pop(), String<MaxTempStringSize>(currentTemp));
+        }
     }
 }
 
-void sendMessageToClient(int id, const String &message, size_t statusCode) {
-    const String httpHeader = String("HTTP/1.1 ") + statusCode + "\n\n";
+void checkForRequest() {
+    if (requests.isEmpty()) {
+        return;
+    }
 
+    auto request = requests.pop();
+
+    constexpr int idStart = 5;
+    auto idEnd = request.find(",", idStart + 1);
+    int id = request.substr<MaxIdStringSize>(idStart, idEnd).to_intger();
+
+    auto urlStart = request.find(" ") + 1;
+    auto urlEnd = request.find(" ", urlStart + 1);
+    auto url = request.substr<MaxUrlStringSize>((size_t) urlStart, urlEnd);
+
+    if (url == "/") {
+        sendMessageToClient(id, website);
+    } else if (url == "/temp") {
+        pollingIds.push(id);
+    } else if (url == "/cTemp") {
+        sendMessageToClient(id, String<MaxTempStringSize>(currentTemp));
+    } else {
+        sendMessageToClient(id, String(""), 404);
+    }
+}
+
+template <size_t StingSize>
+void sendMessageToClient(int id ,const String<StingSize>& message, size_t statusCode) {
+    auto httpHeader = "HTTP/1.1 " + String<MaxStatusCodeStringSize>(statusCode) + "\n\n";
     int size = httpHeader.size() + message.size();
 
-    String sendCommand = "AT+CIPSEND=";
-    sendCommandToClient(sendCommand + id + "," + size, NewLine::RN, "OK");
+    auto sendCommand = "AT+CIPSEND=" + String<MaxIdStringSize>(id) + "," + String<MaxByteSizeStringSize>(size);
+    sendCommandToClient(sendCommand, NewLine::RN, "OK");
 
     sendCommandToClient(httpHeader, NewLine::None, "");
     sendCommandToClient(message, NewLine::None, "SEND OK");
 
-    closeConnection(id);
+    auto closeCommand = "AT+CIPCLOSE=" + String<MaxIdStringSize>(id);
+    sendCommandToClient(closeCommand, NewLine::RN, "OK");
 }
 
-void closeConnection(int id) {
-    String closeCommand = "AT+CIPCLOSE=";
-    sendCommandToClient(closeCommand + id, NewLine::RN, "OK");
-}
-
-void sendCommandToClient(const String &command, NewLine newLine, const String &requiredResponse) {
+template <size_t StingSize>
+void sendCommandToClient(const String<StingSize>& command, NewLine newLine, const char* requiredResponse) {
     switch (newLine) {
         case NewLine::None:
             UART::writeString(command);
@@ -118,8 +175,7 @@ void sendCommandToClient(const String &command, NewLine newLine, const String &r
 
         while (!responseOK) {
             if(!responses.isEmpty()) {
-                String response = responses.peek();
-                responses.deleteFirst();
+                auto response = responses.pop();
 
                 if(response.find(requiredResponse) != -1) {
                     responseOK = true;
@@ -127,63 +183,6 @@ void sendCommandToClient(const String &command, NewLine newLine, const String &r
             }
 
             _delay_ms(100);
-        }
-    }
-}
-
-void enableTcpServer() {
-    sendCommandToClient("AT+CIPMUX=1", NewLine::RN, "OK");
-    sendCommandToClient("AT+CIPSERVER=1,80", NewLine::RN, "OK");
-}
-
-void initAccessPoint(const String &accessPointName) {
-    sendCommandToClient("AT+CWMODE=3", NewLine::RN, "OK");
-    sendCommandToClient("AT+CWSAP=\"" + accessPointName + "\",\"\",1,0", NewLine::RN, "OK");
-}
-
-void checkForMessage() {
-    if (messages.isEmpty()) {
-        return;
-    }
-
-    String lastCommandStr = messages.peek();
-    messages.deleteFirst();
-
-    constexpr int idStart = 5;
-    auto idEnd = (lastCommandStr.substr(idStart).find(","));
-    int id = lastCommandStr.substr(idStart, (size_t) idEnd).to_intger();
-
-    auto urlStart = lastCommandStr.find(" ") + 1;
-    auto urlEnd = lastCommandStr.substr((size_t) urlStart).find(" ");
-    auto url = lastCommandStr.substr((size_t) urlStart, (size_t) urlEnd);
-
-    if (url == "/") {
-        sendMessageToClient(id, website);
-    } else if (url == "/temp") {
-        for (int &i : pollingIds) {
-            if (i == -1) {
-                i = id;
-                break;
-            }
-        }
-    } else if (url == "/cTemp") {
-        sendMessageToClient(id, currentTemp);
-    } else {
-        sendMessageToClient(id, "", 404);
-    }
-
-}
-
-ISR(USART_RXC_vect) {
-    const bool strComplete = strBuilder.add(UDR);
-
-    if (strComplete) {
-        String string = strBuilder.c_str();
-
-        if (string.find("+IPD") != -1) {
-            messages.push(string.c_str());
-        } else if (string.find("OK") != -1){
-            responses.push(string.c_str());
         }
     }
 }

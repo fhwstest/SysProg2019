@@ -5,7 +5,7 @@
 #include <avr/interrupt.h>
 #include <stddef.h>
 
-#include "array/Array.h"
+#include "Array.h"
 #include "Pins.h"
 
 template<Port OneWirePort, uint8_t OW_PIN>

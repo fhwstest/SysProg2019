@@ -2,20 +2,46 @@
 
 #include <stddef.h>
 
-#include "ArrayIterator.h"
+template<class T>
+class ArrayIterator {
+public:
+    explicit ArrayIterator(const T* array, size_t i) : array(array), i(i) {}
+
+    void operator++() {
+        i++;
+    }
+
+    const T &operator*() const {
+        return array[i];
+    }
+
+    T &operator*() {
+        return const_cast<T&>(array[i]);
+    }
+
+    bool operator!=(const ArrayIterator<T> &other) const {
+        if(array == other.array) {
+            return i != other.i;
+        }
+
+        return true;
+    }
+
+private:
+    size_t i;
+    const T* array;
+};
 
 template<class T, size_t N>
 class Array {
 public:
     Array() = default;
 
-    ~Array() = default;
-
-    Array(const Array<T, N> &other) {
-        *this = other;
+    explicit Array(const T& defaultValue) {
+        for(T& value : *this) {
+            value = defaultValue;
+        }
     }
-
-    Array(Array<T, N> &&other) noexcept = default;
 
     constexpr size_t size() const {
         return N;
@@ -44,16 +70,6 @@ public:
     ArrayIterator<T> end() const noexcept {
         return ArrayIterator<T>(_data, N);
     };
-
-    Array<T, N> &operator=(const Array<T, N> &other) {
-        for (size_t i = 0; i < N; i++) {
-            _data[i] = other._data[i];
-        }
-
-        return *this;
-    }
-
-    Array<T, N> &operator=(Array<T, N> &&other) noexcept = default;
 
 private:
     T _data[N];

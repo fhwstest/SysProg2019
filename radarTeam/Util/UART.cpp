@@ -33,25 +33,6 @@ void UART::writeByte(uint8_t byte) {
     UDR = byte;
 }
 
-void UART::writeString(const String &str) {
-    size_t i = 0;
-
-    while (str[i] != '\0') {
-        writeByte(static_cast<uint8_t>(str[i++]));
-    }
-}
-
-void UART::writeLineN(const String &str) {
-    writeString(str);
-    writeByte(static_cast<uint8_t>('\n'));
-}
-
-void UART::writeLineRN(const String &str) {
-    writeString(str);
-    writeByte(static_cast<uint8_t>('\r'));
-    writeByte(static_cast<uint8_t>('\n'));
-}
-
 void UART::writeBytesAsString(uint8_t *bytes, int bytesCount) {
     for (int i = 0; i < bytesCount; i++) {
         char str[4];
@@ -114,20 +95,6 @@ void UART::readLine(char *string, size_t maxStringSize) {
     }
 
     string[maxStringSize] = '\0';
-}
-
-String UART::readString() {
-    char str[255];
-    readString(str, 255);
-
-    return String(str);
-}
-
-String UART::readLine() {
-    char str[255];
-    readLine(str, 254);
-
-    return String(str);
 }
 
 void UART::setBaud(uint32_t baud) {

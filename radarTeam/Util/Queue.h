@@ -1,80 +1,55 @@
-//
-// Created by julian on 25.06.19.
-//
+#pragma once
 
-#ifndef AVR_QUEUE_H
-#define AVR_QUEUE_H
+#include <stdint.h>
 
-#include <stdlib.h>
+#include "Array.h"
 
-template <typename T>
-class QueueNode {
-public:
-    T value;
-    QueueNode<T>* next;
-};
-
-template <typename T>
+template<typename T, size_t N>
 class Queue {
 
 public:
-    void push(const T& value) {
-        if(start == nullptr) {
-            start = static_cast<QueueNode<T> *>(malloc(sizeof(QueueNode<T>)));
-            start->next = nullptr;
-            start->value = value;
-
-            return;
+    bool push(const T& value) {
+        if(currentWrite != currentRead || !lastWasInsert) {
+            lastWasInsert = true;
+            array[currentWrite] = value;
+            currentWrite = (currentWrite + 1) % N;
+            return true;
         }
 
-        QueueNode<T>* currentNode = start;
-
-        while (currentNode->next != nullptr) {
-            currentNode = currentNode->next;
-        }
-
-        currentNode->next = static_cast<QueueNode<T> *>(malloc(sizeof(QueueNode<T>)));
-        currentNode->next->next = nullptr;
-        currentNode->next->value = value;
+        return false;
     }
 
     T pop() {
-        QueueNode<T>* cStart = start;
-
-        start = start->next;
-
-        auto value = cStart->value;
-
-        cStart->value.~T();
-        free(cStart);
-
-        return value;
+        lastWasInsert = false;
+        size_t oldRead = currentRead;
+        currentRead = (currentRead + 1) % N;
+        return array[oldRead];
     }
 
     T& peek() {
-        return  start->value;
+        return array[currentRead];
     }
 
     bool isEmpty() const {
-        return start == nullptr;
+        return size() == 0;
     }
 
     size_t size() const {
-        size_t count = 0;
-
-        QueueNode<T>* current = start;
-
-        while (current != nullptr) {
-            count++;
-            current = current->next;
+        if(currentWrite > currentRead) {
+            return currentWrite - currentRead;
         }
 
-        return count;
+        if(currentWrite == currentRead && !lastWasInsert) {
+            return 0;
+        }
+
+        return N - currentRead + currentWrite;
     }
 
 private:
-    QueueNode<T>* start;
+    bool lastWasInsert = false;
+    size_t currentWrite = 0;
+    size_t currentRead = 0;
+    Array<T, N> array;
 
 };
-
-#endif //AVR_QUEUE_H
