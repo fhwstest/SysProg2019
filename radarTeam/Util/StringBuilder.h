@@ -33,6 +33,10 @@ public:
         return complete;
     }
 
+    String<BufferSize> get() const {
+        return String(buffer);
+    }
+
     const char* c_str() const {
         return buffer;
     }
