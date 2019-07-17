@@ -1,0 +1,314 @@
+
+bluetooth.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00000174  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000006  00800060  00000174  000001e8  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .comment      00000030  00000000  00000000  000001ee  2**0
+                  CONTENTS, READONLY
+  3 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00000220  2**2
+                  CONTENTS, READONLY
+  4 .debug_aranges 00000040  00000000  00000000  0000025c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   0000083c  00000000  00000000  0000029c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 0000063b  00000000  00000000  00000ad8  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   000003a0  00000000  00000000  00001113  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  00000074  00000000  00000000  000014b4  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    0000037d  00000000  00000000  00001528  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    000002d0  00000000  00000000  000018a5  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_ranges 00000030  00000000  00000000  00001b75  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
+   4:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+   8:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+   c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  10:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  14:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  18:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  1c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  20:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  24:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  28:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  2c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  30:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  34:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  38:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  3c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  40:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  44:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  48:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  4c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+  50:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+
+00000054 <__ctors_end>:
+  54:	11 24       	eor	r1, r1
+  56:	1f be       	out	0x3f, r1	; 63
+  58:	cf e5       	ldi	r28, 0x5F	; 95
+  5a:	d8 e0       	ldi	r29, 0x08	; 8
+  5c:	de bf       	out	0x3e, r29	; 62
+  5e:	cd bf       	out	0x3d, r28	; 61
+
+00000060 <__do_copy_data>:
+  60:	10 e0       	ldi	r17, 0x00	; 0
+  62:	a0 e6       	ldi	r26, 0x60	; 96
+  64:	b0 e0       	ldi	r27, 0x00	; 0
+  66:	e4 e7       	ldi	r30, 0x74	; 116
+  68:	f1 e0       	ldi	r31, 0x01	; 1
+  6a:	02 c0       	rjmp	.+4      	; 0x70 <__do_copy_data+0x10>
+  6c:	05 90       	lpm	r0, Z+
+  6e:	0d 92       	st	X+, r0
+  70:	a6 36       	cpi	r26, 0x66	; 102
+  72:	b1 07       	cpc	r27, r17
+  74:	d9 f7       	brne	.-10     	; 0x6c <__do_copy_data+0xc>
+  76:	0e 94 66 00 	call	0xcc	; 0xcc <main>
+  7a:	0c 94 b8 00 	jmp	0x170	; 0x170 <_exit>
+
+0000007e <__bad_interrupt>:
+  7e:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+00000082 <USART_Init>:
+#include <avr/io.h>
+#include <util/delay.h>
+
+
+void USART_Init(unsigned intbaud) {
+	UBRRH = intbaud >> 8; /* Set baudrate */
+  82:	90 bd       	out	0x20, r25	; 32
+	UBRRL = intbaud & 0xFF;
+  84:	89 b9       	out	0x09, r24	; 9
+	UCSRB = (1<<RXEN)|(1<<TXEN); /* Enablerxandtx*/
+  86:	88 e1       	ldi	r24, 0x18	; 24
+  88:	8a b9       	out	0x0a, r24	; 10
+	UCSRC = (1<<URSEL)|(1<<UCSZ1)|(1<<UCSZ0); /* Set frameformat: 8data, 1stop bit, paritynone(initial value) */
+  8a:	86 e8       	ldi	r24, 0x86	; 134
+  8c:	80 bd       	out	0x20, r24	; 32
+  8e:	08 95       	ret
+
+00000090 <UART_TxChar>:
+	} /* URSEL=1: USCRC, URSEL = 0: UBRRH (initial value) */
+	
+void UART_TxChar(char ch)
+{
+	while (! (UCSRA & (1<<UDRE)));  /* Wait for empty transmit buffer */
+  90:	5d 9b       	sbis	0x0b, 5	; 11
+  92:	fe cf       	rjmp	.-4      	; 0x90 <UART_TxChar>
+	UDR = ch ;
+  94:	8c b9       	out	0x0c, r24	; 12
+  96:	08 95       	ret
+
+00000098 <UART_RxChar>:
+}
+
+unsigned char UART_RxChar()
+{
+	while ((UCSRA & (1 << RXC)) == 0);/* Wait till data is received */
+  98:	5f 9b       	sbis	0x0b, 7	; 11
+  9a:	fe cf       	rjmp	.-4      	; 0x98 <UART_RxChar>
+	return(UDR);		/* Return the byte */
+  9c:	8c b1       	in	r24, 0x0c	; 12
+}
+  9e:	08 95       	ret
+
+000000a0 <UART_SendString>:
+
+void UART_SendString(char *str)
+{
+  a0:	0f 93       	push	r16
+  a2:	1f 93       	push	r17
+  a4:	cf 93       	push	r28
+  a6:	fc 01       	movw	r30, r24
+	unsigned char j=0;
+	
+	while (str[j]!=0)		/* Send string till null */
+  a8:	80 81       	ld	r24, Z
+  aa:	88 23       	and	r24, r24
+  ac:	59 f0       	breq	.+22     	; 0xc4 <UART_SendString+0x24>
+  ae:	8f 01       	movw	r16, r30
+  b0:	c0 e0       	ldi	r28, 0x00	; 0
+	{
+		UART_TxChar(str[j]);
+  b2:	0e 94 48 00 	call	0x90	; 0x90 <UART_TxChar>
+		j++;
+  b6:	cf 5f       	subi	r28, 0xFF	; 255
+
+void UART_SendString(char *str)
+{
+	unsigned char j=0;
+	
+	while (str[j]!=0)		/* Send string till null */
+  b8:	f8 01       	movw	r30, r16
+  ba:	ec 0f       	add	r30, r28
+  bc:	f1 1d       	adc	r31, r1
+  be:	80 81       	ld	r24, Z
+  c0:	81 11       	cpse	r24, r1
+  c2:	f7 cf       	rjmp	.-18     	; 0xb2 <UART_SendString+0x12>
+	{
+		UART_TxChar(str[j]);
+		j++;
+	}
+}
+  c4:	cf 91       	pop	r28
+  c6:	1f 91       	pop	r17
+  c8:	0f 91       	pop	r16
+  ca:	08 95       	ret
+
+000000cc <main>:
+}
+*/
+int main(void)
+{
+  
+  DDRB = 0xFF;
+  cc:	8f ef       	ldi	r24, 0xFF	; 255
+  ce:	87 bb       	out	0x17, r24	; 23
+  DDRA = 0xFF;
+  d0:	8a bb       	out	0x1a, r24	; 26
+  PORTB = 0xFF;
+  d2:	88 bb       	out	0x18, r24	; 24
+  PORTA = 0x00;
+  d4:	1b ba       	out	0x1b, r1	; 27
+  PORTB &= ~(1<<PB0);
+  d6:	c0 98       	cbi	0x18, 0	; 24
+  char c;
+  USART_Init(51);
+  d8:	83 e3       	ldi	r24, 0x33	; 51
+  da:	90 e0       	ldi	r25, 0x00	; 0
+  dc:	0e 94 41 00 	call	0x82	; 0x82 <USART_Init>
+  
+  UART_SendString("AT\r\n");
+  e0:	80 e6       	ldi	r24, 0x60	; 96
+  e2:	90 e0       	ldi	r25, 0x00	; 0
+  e4:	0e 94 50 00 	call	0xa0	; 0xa0 <UART_SendString>
+  PORTB &= ~(1<<PB1);
+  e8:	c1 98       	cbi	0x18, 1	; 24
+  
+  while(1){
+	  c=UART_RxChar();
+  ea:	0e 94 4c 00 	call	0x98	; 0x98 <UART_RxChar>
+  ee:	c8 2f       	mov	r28, r24
+	  UART_TxChar(c);
+  f0:	0e 94 48 00 	call	0x90	; 0x90 <UART_TxChar>
+	  //LEDs
+	  if(c == 'O') PORTB &= ~(1<<PB2);
+  f4:	cf 34       	cpi	r28, 0x4F	; 79
+  f6:	11 f4       	brne	.+4      	; 0xfc <main+0x30>
+  f8:	c2 98       	cbi	0x18, 2	; 24
+  fa:	03 c0       	rjmp	.+6      	; 0x102 <main+0x36>
+	  if(c == 'K') PORTB |= (1<<PB2);
+  fc:	cb 34       	cpi	r28, 0x4B	; 75
+  fe:	09 f4       	brne	.+2      	; 0x102 <main+0x36>
+ 100:	c2 9a       	sbi	0x18, 2	; 24
+	}
+	return message;
+}
+*/
+int main(void)
+{
+ 102:	8a e0       	ldi	r24, 0x0A	; 10
+ 104:	90 e0       	ldi	r25, 0x00	; 0
+	  //LEDs
+	  if(c == 'O') PORTB &= ~(1<<PB2);
+	  if(c == 'K') PORTB |= (1<<PB2);
+	  //Servo
+	  for(int i=0; i<10; i++) {
+		  if(c == '1') {
+ 106:	c1 33       	cpi	r28, 0x31	; 49
+ 108:	79 f4       	brne	.+30     	; 0x128 <main+0x5c>
+			   PORTA |= (1<<PA2);
+ 10a:	da 9a       	sbi	0x1b, 2	; 27
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+ 10c:	e7 e4       	ldi	r30, 0x47	; 71
+ 10e:	fd e0       	ldi	r31, 0x0D	; 13
+ 110:	31 97       	sbiw	r30, 0x01	; 1
+ 112:	f1 f7       	brne	.-4      	; 0x110 <main+0x44>
+ 114:	00 c0       	rjmp	.+0      	; 0x116 <main+0x4a>
+ 116:	00 00       	nop
+			   _delay_us(1700); //1,5ms entsprechen 90° Drehung
+			   PORTA &= ~(1<<PA2);
+ 118:	da 98       	cbi	0x1b, 2	; 27
+ 11a:	e7 ef       	ldi	r30, 0xF7	; 247
+ 11c:	fe e8       	ldi	r31, 0x8E	; 142
+ 11e:	31 97       	sbiw	r30, 0x01	; 1
+ 120:	f1 f7       	brne	.-4      	; 0x11e <main+0x52>
+ 122:	00 c0       	rjmp	.+0      	; 0x124 <main+0x58>
+ 124:	00 00       	nop
+ 126:	21 c0       	rjmp	.+66     	; 0x16a <main+0x9e>
+			   _delay_us(18300);
+			 }
+	  
+		  if(c == '2') {
+ 128:	c2 33       	cpi	r28, 0x32	; 50
+ 12a:	79 f4       	brne	.+30     	; 0x14a <main+0x7e>
+				PORTA |= (1<<PA2);
+ 12c:	da 9a       	sbi	0x1b, 2	; 27
+ 12e:	ef e9       	ldi	r30, 0x9F	; 159
+ 130:	ff e0       	ldi	r31, 0x0F	; 15
+ 132:	31 97       	sbiw	r30, 0x01	; 1
+ 134:	f1 f7       	brne	.-4      	; 0x132 <main+0x66>
+ 136:	00 c0       	rjmp	.+0      	; 0x138 <main+0x6c>
+ 138:	00 00       	nop
+				_delay_us(2000); //2ms ensptrechen 180° Drehung
+				PORTA &= ~(1<<PA2);
+ 13a:	da 98       	cbi	0x1b, 2	; 27
+ 13c:	ef e9       	ldi	r30, 0x9F	; 159
+ 13e:	fc e8       	ldi	r31, 0x8C	; 140
+ 140:	31 97       	sbiw	r30, 0x01	; 1
+ 142:	f1 f7       	brne	.-4      	; 0x140 <main+0x74>
+ 144:	00 c0       	rjmp	.+0      	; 0x146 <main+0x7a>
+ 146:	00 00       	nop
+ 148:	10 c0       	rjmp	.+32     	; 0x16a <main+0x9e>
+				_delay_us(18000);
+			  }
+		  if(c == '3') {
+ 14a:	c3 33       	cpi	r28, 0x33	; 51
+ 14c:	71 f4       	brne	.+28     	; 0x16a <main+0x9e>
+			  PORTA |= (1<<PA2);
+ 14e:	da 9a       	sbi	0x1b, 2	; 27
+ 150:	ef ec       	ldi	r30, 0xCF	; 207
+ 152:	f7 e0       	ldi	r31, 0x07	; 7
+ 154:	31 97       	sbiw	r30, 0x01	; 1
+ 156:	f1 f7       	brne	.-4      	; 0x154 <main+0x88>
+ 158:	00 c0       	rjmp	.+0      	; 0x15a <main+0x8e>
+ 15a:	00 00       	nop
+			  _delay_us(1000); //1ms entsprechen 0° Drehung
+			  PORTA &= ~(1<<PA2);
+ 15c:	da 98       	cbi	0x1b, 2	; 27
+ 15e:	ef e6       	ldi	r30, 0x6F	; 111
+ 160:	f4 e9       	ldi	r31, 0x94	; 148
+ 162:	31 97       	sbiw	r30, 0x01	; 1
+ 164:	f1 f7       	brne	.-4      	; 0x162 <main+0x96>
+ 166:	00 c0       	rjmp	.+0      	; 0x168 <main+0x9c>
+ 168:	00 00       	nop
+ 16a:	01 97       	sbiw	r24, 0x01	; 1
+	  UART_TxChar(c);
+	  //LEDs
+	  if(c == 'O') PORTB &= ~(1<<PB2);
+	  if(c == 'K') PORTB |= (1<<PB2);
+	  //Servo
+	  for(int i=0; i<10; i++) {
+ 16c:	61 f6       	brne	.-104    	; 0x106 <main+0x3a>
+ 16e:	bd cf       	rjmp	.-134    	; 0xea <main+0x1e>
+
+00000170 <_exit>:
+ 170:	f8 94       	cli
+
+00000172 <__stop_program>:
+ 172:	ff cf       	rjmp	.-2      	; 0x172 <__stop_program>
