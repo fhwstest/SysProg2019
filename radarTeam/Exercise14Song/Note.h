@@ -5,24 +5,24 @@
 #ifndef AVR_NOTE_H
 #define AVR_NOTE_H
 
-enum class Note{
-    c1 = 262,
-    h = 247,
-    a = 220,
-    g = 196,
-    f = 175,
-    e = 165,
-    d = 147,
-    c = 131,
+enum class Note {
+    c1 = 523,
+    h = 493 ,
+    a = 440,
+    g = 391,
+    f = 349,
+    e = 329,
+    d = 293,
+    c = 261,
     pause = 0
 };
 
-enum class NoteLength{
+enum class NoteLength {
     ganz = 1000,
-    halb = 500,
-    viertel = 250,
-    achtel = 125,
-    sechzentel = 63
+    halb = ganz / 2,
+    viertel = halb / 2,
+    achtel = viertel / 2,
+    sechzentel = achtel / 2
 };
 
 #endif //AVR_NOTE_H
