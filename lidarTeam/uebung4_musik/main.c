@@ -12,6 +12,7 @@
 
 #define Speaker PORTB
 #define SongLen 30
+#define F_CPU 8000000
 
 Note Song[SongLen] ={
 	{c, viertel},
