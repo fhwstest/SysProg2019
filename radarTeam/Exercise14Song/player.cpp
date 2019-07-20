@@ -1,7 +1,7 @@
 #include <avr/interrupt.h>
 
-#include <Clock.h>
 #include <Pins.h>
+#include <Timer.h>
 
 #include "Song.h"
 
@@ -17,6 +17,9 @@ using Speaker = Pins<Port::C>;
 using LEDs = Pins<Port::B>;
 
 // Constants
+
+constexpr Prescaler Timer0Prescaler = Prescaler::P1024;
+constexpr Prescaler Timer1Prescaler = Prescaler::P1024;
 
 constexpr uint16_t StartDelay = 100;
 constexpr size_t PrescalerValue = 1024;
@@ -39,26 +42,15 @@ int main() {
 
     createSong();
 
-    // Enable Timer1
-    TIMSK |= (1 << OCIE1A);
+    Timer::Timer0::enable();
+    Timer::Timer0::enableClearOnCompareMatch();
+    Timer::Timer0::setPrescaler(Timer0Prescaler);
 
-    // Enable Timer0
-    TIMSK |= (1 << OCIE0);
+    Timer::Timer1::enable();
+    Timer::Timer1::enableClearOnCompareMatch();
+    Timer::Timer1::setPrescaler(Timer1Prescaler);
 
-    // Set compare register for Timer1
-    OCR1A = StartDelay;
-
-    // Clear Timer0 on compare match
-    TCCR0 = (1<<WGM01);
-
-    // Clear Timer1 on compare match
-    TCCR1B = (1<<WGM12);
-
-    // Start Timer1 with prescaler of 1024
-    TCCR1B |= (1 << CS12) | (1 << CS10);
-
-    // Start Timer0 with prescaler of 1024
-    TCCR0 |= (1 << CS02) | (1 << CS00);
+    Timer::Timer1::setCompareRegister(StartDelay);
 
     sei();
 
@@ -72,10 +64,8 @@ ISR (TIMER0_COMP_vect) {
 
 ISR (TIMER1_COMPA_vect) {
     if(pause) {
-        // Disable Timer0
-        TIMSK &= ~(1 << OCIE0);
-        // Pause for given PauseTime
-        OCR1A = calcCompTime<uint16_t>(PrescalerValue, PauseTime);
+        Timer::Timer0::disable();
+        Timer::Timer0::setCompareRegisterByTime(Timer0Prescaler, PauseTime);
 
         pause = false;
 
@@ -85,15 +75,13 @@ ISR (TIMER1_COMPA_vect) {
     flashLed(song.notes[count]);
 
     if(song.notes[count] == Note::pause) {
-        //Disable Timer0
-        TIMSK &= ~(1 << OCIE0);
+        Timer::Timer0::disable();
     } else {
-        //Enable Timer0
-        TIMSK |= (1 << OCIE0);
+        Timer::Timer0::enable();
     }
 
-    OCR0 =  calcCompFreq<uint8_t>(PrescalerValue, static_cast<size_t>(song.notes[count]));
-    OCR1A = calcCompTime<uint16_t>(PrescalerValue, static_cast<size_t>(song.noteLengths[count]));
+    Timer::Timer0::setCompareRegisterByFrequency(Timer0Prescaler, (size_t) song.notes[count]);
+    Timer::Timer1::setCompareRegisterByTime(Timer1Prescaler, (size_t) song.noteLengths[count]);
 
     count = ((count + 1) % song.size);
     pause = true;

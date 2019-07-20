@@ -1,7 +1,7 @@
 #include <avr/interrupt.h>
 
 #include <Pins.h>
-#include <Clock.h>
+#include <Timer.h>
 
 #include "Note.h"
 
@@ -9,6 +9,10 @@
 
 void playSound();
 void playNote(Note note);
+
+// Constants
+
+constexpr Prescaler Timer0Prescaler = Prescaler::P1024;
 
 // Port and Pin declarations
 
@@ -23,11 +27,8 @@ int main() {
     Speaker::setAllOutput();
     LEDs::setAllOutput();
 
-    // Clear Timer0 on compare match
-    TCCR0 = (1<<WGM01);
-
-    // Start timer0 with prescaler 1024
-    TCCR0 |= (1 << CS02) | (1 << CS00);
+    Timer::Timer0::enableClearOnCompareMatch();
+    Timer::Timer0::setPrescaler(Timer0Prescaler);
 
     sei();
 
@@ -70,15 +71,11 @@ void playSound() {
             playNote(Note::c1);
             break;
         default:
-            //Disable Timer0
-            TIMSK &= ~(1 << OCIE0);
+            Timer::Timer0::disable();
     }
 }
 
 void playNote(Note note) {
-    //Set timer compare register to manipulate the frequency of the speaker output
-    OCR0 = calcCompFreq<uint8_t>(1024, static_cast<size_t>(note));
-
-    //Enable Timer0
-    TIMSK |= (1 << OCIE0);
+    Timer::Timer0::setCompareRegisterByFrequency(Timer0Prescaler, (size_t) note);
+    Timer::Timer0::enable();
 }

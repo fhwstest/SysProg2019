@@ -74,7 +74,7 @@ public:
 
     // Read Value Methods
 
-    static uint8_t readAllPins() {
+    static constexpr uint8_t readAllPins() {
         return _SFR_IO8(pin);
     }
 
