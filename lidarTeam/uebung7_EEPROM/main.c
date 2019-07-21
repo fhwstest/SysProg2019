@@ -102,7 +102,7 @@ void stop()
 
 void writeData(uint8_t data, uint8_t successState, const char *msg)
 {
-	TWDR = data;					   //CHIP_ADDR //Load SLA_W into TWDR Register.
+	TWDR = data;
 	TWCR = (1 << TWINT) | (1 << TWEN); //Clear TWINT bit in TWCR to start transmission
 	while (!(TWCR & (1 << TWINT)))
 		;

@@ -50,7 +50,7 @@ void toggleLED()
 	{
 		LED = 0xfd; //253
 	}
-	else if (LED == 0xfd)
+	else
 	{
 		LED = 0xfe; //254
 	}

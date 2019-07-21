@@ -20,7 +20,7 @@ void initPWM()
 	TCNT1 = 0;				 /* Set timer1 count zero */
 	ICR1 = 2499;			 // limit of counter for fast PWM
 
-	// Set fast PWM with  period of 20ms/50hz (F_CPU/prescaler)/ICR1
+	// Set fast PWM with period of 20ms/50hz (F_CPU/prescaler)/ICR1
 	// COM1A1 clears OCR1A on compare match, sets it at BOTTOM
 	TCCR1A = (1 << WGM11) | (1 << COM1A1);
 	// prescaler 64

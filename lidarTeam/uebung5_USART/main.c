@@ -30,8 +30,8 @@ int main(void)
 void init()
 {
 	DDRC = 0xff;
-	DDRA = 0x00;
 	LED = 0xff;
+	DDRA = 0x00;
 }
 
 ISR(USART_RXC_vect)

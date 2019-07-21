@@ -43,7 +43,7 @@ void printErg(const char *msg);
 
 uint32_t uint32EndianConversion(uint32_t num);
 
-void readBlock(unsigned unit8_t *buff, const uint8_t address);
+void readBlock(unit8_t *buff, const uint8_t address);
 
 int main()
 {
@@ -98,7 +98,7 @@ void initSpi()
 	/* Set MOSI and SCK etc. output, all others input */
 	DDRB = (1 << MOSI) | (1 << SCK) | (1 << EN1) | (1 << EN2) | (1 << SS);
 
-	/* Enable SPI, Master, set clock rate fck/16 */
+	/* Enable SPI, Master, set clock rate fcpu/16 */
 	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 }
 
@@ -226,7 +226,7 @@ unsigned uint8_t receiveByte()
 	return SPDR;
 }
 
-void readBlock(unsigned unit8_t *buff, const uint8_t address)
+void readBlock(unit8_t *buff, const uint8_t address)
 {
 	const uint8_t readSingleBlockCommand = 17;
 	sendCommand(readSingleBlockCommand, address, 0);
