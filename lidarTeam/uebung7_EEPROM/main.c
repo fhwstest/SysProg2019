@@ -3,7 +3,7 @@
  *
  * Created: 15.07.2019 13:52:49
  * Author : PC
- */ 
+ */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -16,10 +16,10 @@
 #define SLA_R 0xA1
 #define SLA_W 0xA0
 
-#define  TW_START 0x8
-#define  TW_SLAW_ACK 0x18
-#define  TW_SLAR_ACK 0x40
-#define  TW_WRITE_ACK 0x28
+#define TW_START 0x8
+#define TW_SLAW_ACK 0x18
+#define TW_SLAR_ACK 0x40
+#define TW_WRITE_ACK 0x28
 
 void init();
 void start();
@@ -28,19 +28,16 @@ void stop();
 void writeData(uint8_t data, uint8_t successState, const char *msg);
 uint8_t readData();
 
-void printErg(const char* msg, uint8_t code, uint8_t expectedCode);
+void printErg(const char *msg, uint8_t code, uint8_t expectedCode);
 
 void writeDataToMem(const int data, const int address);
 
 void readDataFromMem(const int address);
 
-int main() {
+int main()
+{
 	const int address = 0;
 	const int data = 0x0b;
-
-	//I/0 Pins vom B-Register mit LEDs verbunden
-	DDRB = 0xFF;
-	PORTB = 0xFF;
 
 	init();
 
@@ -81,35 +78,44 @@ void readDataFromMem(const int address)
 	stop();
 }
 
-void init() {
-	TWSR = 0x00; //TWPS1 und TWPS0 = 0
-	TWBR = static_cast<uint8_t>(F_CPU / I2C_SCK - 16); //I2C_SCK ist die gewünschte Frequenz
+void init()
+{
+	//TWPS1 und TWPS0 = 0, Prescaler 0
+	TWSR = 0x00;
+	TWBR = (F_CPU / I2C_SCK - 16); //I2C_SCK ist die gewünschte Frequenz
 }
 
-void start() {
+void start()
+{
 	//Send START condition
 	TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
 
 	//Wait for TWINT Flag set. This indicates that the START condition has been transmitted
-	while ((TWCR & (1 << TWINT)) == 0);
+	while ((TWCR & (1 << TWINT)) == 0)
+		;
 }
 
-void stop() {
+void stop()
+{
 	TWCR = (1 << TWINT) | (1 << TWSTO) | (1 << TWEN);
 }
 
-void writeData(uint8_t data, uint8_t successState, const char *msg) {
-	TWDR = data; //CHIP_ADDR //Load SLA_W into TWDR Register.
+void writeData(uint8_t data, uint8_t successState, const char *msg)
+{
+	TWDR = data;					   //CHIP_ADDR //Load SLA_W into TWDR Register.
 	TWCR = (1 << TWINT) | (1 << TWEN); //Clear TWINT bit in TWCR to start transmission
-	while (!(TWCR & (1 << TWINT)));
+	while (!(TWCR & (1 << TWINT)))
+		;
+	// return code of command: uint8_t erg =TWSR & 0xF8;
 }
 
-uint8_t readData() {
+uint8_t readData()
+{
 	TWCR = (1 << TWINT) | (1 << TWEN);
-	while (!(TWCR & (1 << TWINT)));
+	while (!(TWCR & (1 << TWINT)))
+		;
 
 	uint8_t data = TWDR;
 
 	return data;
 }
-
