@@ -14,11 +14,12 @@
 #define THERMOMMODE = DDRB
 #define THERMOMIN = PINB0
 
+float readTemp();
+
 int main(void)
 {
 	USART_Init(9600);
 	int Temperature = -1000;
-	/* Replace with your application code */
 	while (1)
 	{
 		static float newTemp = readTemp();
@@ -30,7 +31,7 @@ int main(void)
 	}
 }
 
-static void writeBit0()
+void writeBit0()
 {
 	const char sregSave = SREG;
 	cli();
@@ -43,7 +44,7 @@ static void writeBit0()
 	SREG = sregSave;
 }
 
-static void writeBit1()
+void writeBit1()
 {
 	const char sregSave = SREG;
 	cli();
@@ -57,7 +58,7 @@ static void writeBit1()
 	SREG = sregSave;
 }
 
-static bool readBit()
+bool readBit()
 {
 	const char sregSave = SREG;
 	cli();
@@ -74,7 +75,7 @@ static bool readBit()
 	return erg;
 }
 
-static bool reset()
+bool reset()
 {
 	const char sregSave = SREG;
 	cli();
@@ -91,10 +92,11 @@ static bool reset()
 	return !erg;
 }
 
-static void writeByte(uint8_t data)
+void writeByte(uint8_t data)
 {
 	for (int i = 0; i < 8; i++)
 	{
+		// select one bit
 		const int bit = ((data & (1 << i)) >> i);
 
 		if (bit)
@@ -108,7 +110,7 @@ static void writeByte(uint8_t data)
 	}
 }
 
-static void writeNBytes(uint8_t *data, int dataSize)
+void writeNBytes(uint8_t *data, int dataSize)
 {
 	for (int i = 0; i < dataSize; i++)
 	{
@@ -116,9 +118,9 @@ static void writeNBytes(uint8_t *data, int dataSize)
 	}
 }
 
-static uint8_t readByte()
+uint8_t readByte()
 {
-	uint8_t data{};
+	uint8_t data = 0;
 
 	for (int i = 0; i < 8; i++)
 	{
@@ -137,7 +139,7 @@ static uint8_t readByte()
 	return data;
 }
 
-static void readNBytes(uint8_t *data, int dataSize)
+void readNBytes(uint8_t *data, int dataSize)
 {
 	for (int i = 0; i < dataSize; i++)
 	{
@@ -145,7 +147,28 @@ static void readNBytes(uint8_t *data, int dataSize)
 	}
 }
 
-static float readTemp()
+void selectDevice()
+{
+	const uint8_t READ_ROM_CMD = 0x33;
+	const uint8_t MATCH_ROM_CMD = 0x55;
+
+	reset();
+	writeByte(READ_ROM_CMD);
+	char address[8];
+	readNBytes(address, 8));
+
+	reset();
+	writeByte(MATCH_ROM_CMD);
+	writeNBytes(address, 8);
+}
+
+int isBitSet(uint8_t byte, uint8_t i)
+{
+	// select one bit
+	return ((byte & (1 << i)) >> i);
+}
+
+float readTemp()
 {
 	const uint8_t CONVERT_TEMP_CMD = 0x44;
 	const uint8_t READ_SCRATCHPAD_CMD = 0xbe;
@@ -157,7 +180,6 @@ static float readTemp()
 	writeByte(READ_SCRATCHPAD_CMD);
 	char scratchpad[9];
 	readNBytes(scratchpad, 9);
-
 
 	// shift bit out to get actual temp
 	float erg = scratchpad[0] >> 1;
@@ -173,24 +195,4 @@ static float readTemp()
 	}
 
 	return erg;
-}
-
-static void selectDevice()
-{
-	const uint8_t READ_ROM_CMD = 0x33;
-	const uint8_t MATCH_ROM_CMD = 0x55;
-
-	reset();
-	writeByte(READ_ROM_CMD);
-	char address[8];
-	readNBytes(address, 8));
-
-	reset();
-	writeByte(MATCH_ROM_CMD);
-	writeNBytes(address, 8);
-}
-
-static bool isBitSet(uint8_t byte, uint8_t i)
-{
-	return static_cast<bool>((byte & (1 << i)) >> i);
 }

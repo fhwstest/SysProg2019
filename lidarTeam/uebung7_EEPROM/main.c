@@ -56,6 +56,8 @@ void writeDataToMem(const int data, const int address)
 	start();
 
 	//write data
+	//32 pages with 16 bytes
+	//5 bit page address, 4 bit for byte in page
 	writeData(SLA_W, TW_SLAW_ACK, "Set in Write Mode");
 	writeData(address, TW_WRITE_ACK, "Set Address");
 	writeData(data, TW_WRITE_ACK, "Write Data");

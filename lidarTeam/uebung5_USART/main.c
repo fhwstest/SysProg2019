@@ -3,7 +3,7 @@
  *
  * Created: 15.07.2019 12:45:28
  *  Author: PC
- */ 
+ */
 
 #include <avr/interrupt.h>
 #include "USART.h"
@@ -16,12 +16,11 @@ void init();
 int main(void)
 {
 	init();
-	
-	
+
 	sei();
-	
+
 	USART_Init(9600);
-	
+
 	while (1)
 	{
 		USART_Transmit(BUTTON);
@@ -35,6 +34,7 @@ void init()
 	LED = 0xff;
 }
 
-ISR(USART_RXC_vect){
+ISR(USART_RXC_vect)
+{
 	LED = USART_Receive();
 }
