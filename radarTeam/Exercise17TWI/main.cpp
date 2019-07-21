@@ -3,6 +3,8 @@
 #include <util/delay.h>
 
 #include <UART.h>
+#include <SString.h>
+
 #include <stdio.h>
 
 #define I2C_SCK 400000
@@ -100,8 +102,7 @@ uint8_t readData() {
 
     uint8_t data = TWDR;
 
-    char str[100];
-    sprintf(str, "Code: %02X\r\n", data);
+    auto str = String<80>::format("Code: %02X\r\n", data);
     UART::writeString(str);
 
     return data;
@@ -111,8 +112,7 @@ void printErg(const char *msg, uint8_t code, uint8_t expectedCode) {
     PORTB = ~code;
 
     if(code != expectedCode) {
-        char str[200];
-        sprintf(str, "Error - %s: %02X", msg, code);
+        auto str = String<80>::format("Error - %s: %02X", msg, code);
         UART::writeString(str);
     }
 }

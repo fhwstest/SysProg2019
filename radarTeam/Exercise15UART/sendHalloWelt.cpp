@@ -6,7 +6,7 @@ int main() {
     UART::setBaud(9600);
 
     while (true) {
-        UART::writeString("Hallo Welt\r\n");
+        UART::writeLineRN("Hallo Welt");
     }
 
 }

@@ -68,7 +68,7 @@ ISR(USART_RXC_vect) {
     const bool strComplete = strBuilder.add(UDR);
 
     if(strComplete) {
-        const int newIndex = atoi(strBuilder.c_str());
+        const int newIndex = strBuilder.get().to_intger();
 
         Direction newDirection = currentDirection;
 

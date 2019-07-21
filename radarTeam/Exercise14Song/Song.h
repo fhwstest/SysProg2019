@@ -7,9 +7,9 @@
 
 #include "Note.h"
 
-template <int maxSize>
- class Song {
- public:
+template<size_t MaxSongSize>
+class Song {
+public:
     void addNote(Note note, NoteLength length) {
         notes[size] = note;
         noteLengths[size] = length;
@@ -17,12 +17,9 @@ template <int maxSize>
         ++size;
     }
 
-    int size = 0;
-    Note notes[maxSize];
-    NoteLength noteLengths[maxSize];
-
-    template <int songSize, Port SpeakerPort, Port LEDsPort>
-    friend class Player;
+    size_t size = 0;
+    Note notes[MaxSongSize];
+    NoteLength noteLengths[MaxSongSize];
 };
 
 #endif //AVR_SONG_H

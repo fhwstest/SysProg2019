@@ -7,6 +7,9 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
 
 template <size_t Size>
 class String {
@@ -18,8 +21,8 @@ public:
         strcpy(this->cString, cString);
     }
 
-    String(int value) {
-        itoa(value, cString, 10);
+    String(int value, int base = 10) {
+        itoa(value, cString, base);
     }
 
     const char* c_str() const {
@@ -66,6 +69,19 @@ public:
 
     int to_intger() const {
         return atoi(cString);
+    }
+
+    static String<Size> format(const char *strFormat, ...) {
+        String<Size> str;
+
+        va_list args;
+        va_start (args, strFormat);
+
+        vsprintf (str.cString, strFormat, args);
+
+        va_end (args);
+
+        return str;
     }
 
     template <size_t OtherSize>

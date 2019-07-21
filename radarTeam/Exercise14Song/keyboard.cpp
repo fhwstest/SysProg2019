@@ -1,20 +1,34 @@
 #include <avr/interrupt.h>
 
 #include <Pins.h>
+#include <Timer.h>
 
-using Switches = Pins<Port::D>;
-using Speaker = Pins<Port::B>;
-using LEDs = Pins<Port::C>;
+#include "Note.h"
+
+// Forward declarations
 
 void playSound();
+void playNote(Note note);
+
+// Constants
+
+constexpr Prescaler Timer0Prescaler = Prescaler::P1024;
+
+// Port and Pin declarations
+
+using Switches = Pins<Port::A>;
+using Speaker = Pins<Port::C>;
+using LEDs = Pins<Port::B>;
+
+// Functions
 
 int main() {
     Switches::setAllInput();
     Speaker::setAllOutput();
     LEDs::setAllOutput();
 
-    // Start timer0 with prescaler 1024
-    TCCR0 |= (1 << CS01) | (1 << CS00);
+    Timer::Timer0::enableClearOnCompareMatch();
+    Timer::Timer0::setPrescaler(Timer0Prescaler);
 
     sei();
 
@@ -25,26 +39,43 @@ int main() {
 
 }
 
+ISR (TIMER0_COMP_vect) {
+    //Invert current value of the speaker to creating the oscillation
+    Speaker::writeMaskInverted(Speaker::readAllPorts());
+}
+
 void playSound() {
-    for (uint8_t i = 0; i < 8; ++i) {
-        const bool pressed = !Switches::readSinglePin(i);
-        if (pressed) {
-            //Set timer compare register to manipulate the frequency of the speaker output
-            OCR0 = (uint8_t) (255 / 8 * (i + 1));
-
-            TIMSK |= (1 << OCIE0);
-        }
-    }
-
-    if (!Switches::anyLow()) {
-        TIMSK &= ~(1 << OCIE0);
+    switch (Switches::readAllPins()) {
+        case 0xff - 128:
+            playNote(Note::c);
+            break;
+        case 0xff - 64:
+            playNote(Note::d);
+            break;
+        case 0xff - 32:
+            playNote(Note::e);
+            break;
+        case 0xff - 16:
+            playNote(Note::f);
+            break;
+        case 0xff - 8:
+            playNote(Note::g);
+            break;
+        case 0xff - 4:
+            playNote(Note::a);
+            break;
+        case 0xff - 2:
+            playNote(Note::h);
+            break;
+        case 0xff - 1:
+            playNote(Note::c1);
+            break;
+        default:
+            Timer::Timer0::disable();
     }
 }
 
-ISR (TIMER0_COMP_vect) {
-    //Invert current value of the speaker to creating the oscillation
-    Speaker::invertCurrentValue();
-
-    // Reset overflow counter
-    TCNT0 = 0;
+void playNote(Note note) {
+    Timer::Timer0::setCompareRegisterByFrequency(Timer0Prescaler, (size_t) note);
+    Timer::Timer0::enable();
 }
