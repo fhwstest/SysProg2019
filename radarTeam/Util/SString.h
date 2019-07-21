@@ -58,7 +58,7 @@ public:
 
     template <size_t NewSize>
     String<NewSize> substr(size_t index, size_t size = NewSize) const {
-        String<NewSize> newString{};
+        String<NewSize> newString;
 
         char* buffer = const_cast<char*>(newString.c_str());
 

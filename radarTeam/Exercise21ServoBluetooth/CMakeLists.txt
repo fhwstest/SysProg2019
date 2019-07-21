@@ -1,2 +1,5 @@
-add_flashable_executable(e21ServoBluetooth main.cpp)
-target_link_libraries(e21ServoBluetooth util)
+add_flashable_executable(e21ServoBluetoothDelay delay.cpp)
+target_link_libraries(e21ServoBluetoothDelay util)
+
+add_flashable_executable(e21ServoBluetoothInterrupt interrupt.cpp)
+target_link_libraries(e21ServoBluetoothInterrupt util)

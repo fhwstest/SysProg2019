@@ -29,10 +29,6 @@ int main() {
     constexpr int address = 0;
     constexpr int data = 0x0b;
 
-    //I/0 Pins vom B-Register mit LEDs verbunden
-    DDRB = 0xFF;
-    PORTB = 0xFF;
-
     //USART Settings einstellen
     UART::enableSync();
     UART::setBaud(9600);
@@ -51,14 +47,10 @@ int main() {
     _delay_ms(200);
 
     start();
-
-    // TODO: Check if needed
     writeData(SLA_W, TW_SLAW_ACK, "Set in write Mode 2");
     writeData(address, TW_WRITE_ACK, "Set read Address");
 
-    // TODO: Check if needed
     start();
-
     writeData(SLA_R, TW_SLAR_ACK, "Set in read Mode");
     readData();
 
@@ -102,17 +94,13 @@ uint8_t readData() {
 
     uint8_t data = TWDR;
 
-    auto str = String<80>::format("Code: %02X\r\n", data);
-    UART::writeString(str);
+    UART::printf("Code: %02X\r\n", data);
 
     return data;
 }
 
 void printErg(const char *msg, uint8_t code, uint8_t expectedCode) {
-    PORTB = ~code;
-
     if(code != expectedCode) {
-        auto str = String<80>::format("Error - %s: %02X", msg, code);
-        UART::writeString(str);
+        UART::printf("Error - %s: %02X", msg, code);
     }
 }

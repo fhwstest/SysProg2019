@@ -42,11 +42,11 @@ int main() {
 
     createSong();
 
-    Timer::Timer0::enable();
+    Timer::Timer0::enableCompareMatch();
     Timer::Timer0::enableClearOnCompareMatch();
     Timer::Timer0::setPrescaler(Timer0Prescaler);
 
-    Timer::Timer1::enable();
+    Timer::Timer1::enableCompareMatch();
     Timer::Timer1::enableClearOnCompareMatch();
     Timer::Timer1::setPrescaler(Timer1Prescaler);
 
@@ -64,7 +64,7 @@ ISR (TIMER0_COMP_vect) {
 
 ISR (TIMER1_COMPA_vect) {
     if(pause) {
-        Timer::Timer0::disable();
+        Timer::Timer0::disableCompareMatch();
         Timer::Timer0::setCompareRegisterByTime(Timer0Prescaler, PauseTime);
 
         pause = false;
@@ -75,9 +75,9 @@ ISR (TIMER1_COMPA_vect) {
     flashLed(song.notes[count]);
 
     if(song.notes[count] == Note::pause) {
-        Timer::Timer0::disable();
+        Timer::Timer0::disableCompareMatch();
     } else {
-        Timer::Timer0::enable();
+        Timer::Timer0::enableCompareMatch();
     }
 
     Timer::Timer0::setCompareRegisterByFrequency(Timer0Prescaler, (size_t) song.notes[count]);

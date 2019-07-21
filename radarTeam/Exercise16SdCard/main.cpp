@@ -11,20 +11,16 @@
 
 void initSpi();
 void initSdCard();
+void setBlockLength();
+void writeByte(uint8_t address, uint8_t value);
 
 void reset();
 
+void sendCommand(uint8_t command, uint32_t argument, uint8_t crc = 0);
 void waitForAnswer(uint8_t expectedAnswer);
 
-void writeByte(uint8_t address, uint8_t value);
-void spiWriteByte(uint8_t cData);
-
 Array<uint8_t, 6> buildMessage(uint8_t command, uint32_t argument, uint8_t crc);
-void sendCommand(uint8_t command, uint32_t argument, uint8_t crc = 0);
-
-void setBlockLength();
-
-void printErg(const char *msg);
+void spiTransmit(uint8_t cData);
 
 uint32_t uint32EndianConversion(uint32_t num);
 
@@ -38,12 +34,12 @@ constexpr int SS = 4;
 constexpr int EN1 = 1;
 constexpr int EN2 = 2;
 
-constexpr uint8_t initCrc = 94;
+constexpr uint8_t initCrc = 74;
 
 // Port and Pin declarations
 
 using LEDs = Pins<Port::C>;
-using SdCard = Pins<Port::B>;
+using SdCard = Pins<Port::A>;
 
 // Functions
 
@@ -52,102 +48,31 @@ int main() {
     UART::setBaud(9600);
 
     initSpi();
-
     initSdCard();
-    printErg("Init");
-
     setBlockLength();
-    printErg("Set Block");
-
     writeByte(1, 1);
-    printErg("Write Byte");
 
     while (true);
 }
 
-void waitForAnswer(uint8_t expectedAnswer) {
-    while(SPDR != expectedAnswer) {
-        spiWriteByte(0xff);
-    }
-}
-
-void printErg(const char *msg) {
-    char str[3];
-    sprintf(str, "%02X", SPDR);
-
-    UART::writeString(msg);
-    UART::writeString(" war ");
-    UART::writeString(SPDR == 0 ? "erfolgreich" : "nicht erfolgreich");
-    UART::writeString(" Code: ");
-    UART::writeString(str);
-    UART::writeString("\r\n");
-}
-
 void initSpi() {
-/* Set MOSI and SCK output, all others input */
-    DDRB = (1 << MOSI) | (1 << SCK) | (1 << EN1) | (1 << EN2) | (1 << SS);
+   // Set MOSI SCK etc. output, all others input
+    SdCard::setPinOutput(MOSI);
+    SdCard::setPinOutput(SCK);
+    SdCard::setPinOutput(EN1);
+    SdCard::setPinOutput(EN2);
+    SdCard::setPinOutput(SS);
 
-/* Enable SPI, Master, set clock rate fck/16 */
+    // Enable SPI, Master, set clock rate fck/16
     SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
-
-    SdCard::writePin(SS, false);
-}
-
-void spiWriteByte(uint8_t cData) {
-/* Start transmission */
-    SPDR = cData;
-/* Wait for transmission complete */
-    while (!(SPSR & (1 << SPIF)));
-}
-
-Array<uint8_t, 6> buildMessage(uint8_t command, uint32_t argument, uint8_t crc) {
-    Array<uint8_t, 6> array;
-
-    uint8_t *commandAddress = array.data();
-    *commandAddress |= (1 << 6); // Set second bit to 1
-    *commandAddress |= command; // Set command
-
-    uint32_t *argumentAddress = reinterpret_cast<uint32_t *>(array.data() + 1);
-    *argumentAddress = uint32EndianConversion(argument);
-
-    uint8_t *crcAddress = array.data() + 5;
-    crc = crc << 1;
-    crc |= 1;
-    *crcAddress = crc;
-
-    return array;
-}
-
-void sendCommand(uint8_t command, uint32_t argument, uint8_t crc) {
-    auto array = buildMessage(command, argument, crc);
-
-    for (uint8_t i : array) {
-        spiWriteByte(i);
-    }
-}
-
-void reset() {
-    SdCard::writePin(EN1, false);
-    SdCard::writePin(EN2, true);
-
-    SdCard::writePin(EN1, true);
-    SdCard::writePin(EN2, false);
-
-    _delay_ms(60);
-
-    SdCard::writePin(EN1, false);
-    SdCard::writePin(EN2, true);
 }
 
 void initSdCard() {
     reset();
 
+    SdCard::writePin(SS, false);
+    _delay_ms(10);
     SdCard::writePin(SS, true);
-
-    // Wait 10 cycles
-    for(int i = 0; i < 10; i++) {
-        spiWriteByte(0xff);
-    }
 
     SdCard::writePin(SS, false);
 
@@ -164,23 +89,76 @@ void initSdCard() {
     waitForAnswer(0);
 }
 
+void reset() {
+    // Wait for SD Card to be online
+    _delay_ms(300);
+
+    SdCard::writePin(EN1, true);
+    SdCard::writePin(EN2, false);
+
+    _delay_ms(100);
+
+    SdCard::writePin(EN1, false);
+    SdCard::writePin(EN2, true);
+}
+
 void writeByte(uint8_t address, uint8_t value) {
     constexpr uint8_t writeBlockCommand = 24;
     sendCommand(writeBlockCommand, address);
 
     constexpr uint8_t startBlock = 254;
-    spiWriteByte(startBlock);
+    spiTransmit(startBlock);
 
-    spiWriteByte(value);
+    spiTransmit(value);
 
     for (int i = 0; i < 511; ++i) {
-        spiWriteByte(0);
+        spiTransmit(0);
     }
+}
+
+void spiTransmit(uint8_t cData) {
+    // Start transmission
+    SPDR = cData;
+    
+    // Wait for transmission complete
+    while (!(SPSR & (1 << SPIF)));
+}
+
+Array<uint8_t, 6> buildMessage(uint8_t command, uint32_t argument, uint8_t crc) {
+    Array<uint8_t, 6> array(0);
+
+    uint8_t *commandAddress = array.data();
+    *commandAddress |= (1 << 6); // Set second bit to 1
+    *commandAddress |= command; // Set command
+
+    uint32_t *argumentAddress = reinterpret_cast<uint32_t *>(array.data() + 1);
+    *argumentAddress = uint32EndianConversion(argument);
+
+    uint8_t *crcAddress = array.data() + 5;
+    crc = crc << 1;
+    crc |= 1;
+    *crcAddress = crc;
+
+    return array;
 }
 
 void setBlockLength() {
     constexpr uint8_t setBlockLengthCommand = 16;
     sendCommand(setBlockLengthCommand, 512);
+}
+
+void sendCommand(uint8_t command, uint32_t argument, uint8_t crc) {
+    auto array = buildMessage(command, argument, crc);
+
+    for (uint8_t i : array) {
+        spiTransmit(i);
+    }
+}
+
+void waitForAnswer(uint8_t expectedAnswer) {
+    while(SPDR != expectedAnswer) {
+        spiTransmit(0xff);
+    }
 }
 
 uint32_t uint32EndianConversion(uint32_t num) {

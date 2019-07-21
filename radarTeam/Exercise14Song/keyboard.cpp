@@ -71,11 +71,11 @@ void playSound() {
             playNote(Note::c1);
             break;
         default:
-            Timer::Timer0::disable();
+            Timer::Timer0::disableCompareMatch();
     }
 }
 
 void playNote(Note note) {
     Timer::Timer0::setCompareRegisterByFrequency(Timer0Prescaler, (size_t) note);
-    Timer::Timer0::enable();
+    Timer::Timer0::enableCompareMatch();
 }

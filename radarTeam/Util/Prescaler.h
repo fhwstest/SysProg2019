@@ -6,7 +6,8 @@
 #define AVR_PRESCALER_H
 
 enum class Prescaler {
-    P1024 = 1024
+    P1024 = 1024,
+    P64 = 64
 };
 
 #endif //AVR_PRESCALER_H

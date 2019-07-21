@@ -18,7 +18,7 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        OneWirePins::setAllOutput();
+        OneWirePins::setPinOutput(OW_PIN);
         OneWirePins::writePin(OW_PIN, false);
         _delay_us(60);
         OneWirePins::writePin(OW_PIN, true);
@@ -31,7 +31,7 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        OneWirePins::setAllOutput();
+        OneWirePins::setPinOutput(OW_PIN);
         OneWirePins::writePin(OW_PIN, false);
         _delay_us(6);
         OneWirePins::writePin(OW_PIN, true);
@@ -44,10 +44,10 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        OneWirePins::setAllOutput();
+        OneWirePins::setPinOutput(OW_PIN);
         OneWirePins::writePin(OW_PIN, false);
         _delay_us(6);
-        OneWirePins::setAllInput();
+        OneWirePins::setPinInput(OW_PIN);
         _delay_us(9);
         const auto erg = OneWirePins::readSinglePin(OW_PIN);
         _delay_us(55);
@@ -61,10 +61,10 @@ public:
         const auto sregSave = SREG;
         cli();
 
-        OneWirePins::setAllOutput();
+        OneWirePins::setPinOutput(OW_PIN);
         OneWirePins::writePin(OW_PIN, false);
         _delay_us(480);
-        OneWirePins::setAllInput();
+        OneWirePins::setPinInput(OW_PIN);
         _delay_us(70);
         const auto erg = OneWirePins::readSinglePin(OW_PIN);
         _delay_us(410);
@@ -83,12 +83,6 @@ public:
             } else {
                 writeBit0();
             }
-        }
-    }
-
-    static void writeNBytes(uint8_t* data, int dataSize) {
-        for(int i = 0; i < dataSize; i++) {
-            writeByte(data[i]);
         }
     }
 
@@ -113,12 +107,6 @@ public:
         }
 
         return data;
-    }
-
-    static void readNBytes(uint8_t* data, int dataSize) {
-        for(int i = 0; i < dataSize; i++) {
-            data[i] = readByte();
-        }
     }
 
     template <size_t N>

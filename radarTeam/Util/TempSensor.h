@@ -53,7 +53,7 @@ private:
         MyOneWire::writeByteArray(address);
     }
 
-    static bool isBitSet(uint8_t byte, uint8_t i) {
+    static bool constexpr isBitSet(uint8_t byte, uint8_t i) {
         return static_cast<bool>((byte & (1 << i)) >> i);
     }
 
