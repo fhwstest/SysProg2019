@@ -19,7 +19,7 @@ void initPWM()
 	TCNT1 = 0;		/* Set timer1 count zero */
 	ICR1 = 2499;	// limit of counter for fast PWM
 
-	// Set fast PWM with  period of 20ms/50hz (F_CPU/prescaler)/ICR1
+	// Set fast PWM with  period of 20ms/50hz (F_CPU/prescaler)/ICR1 com1a1 clears compare match register
 	TCCR1A = (1<<WGM11)|(1<<COM1A1);
 	// prescaler 64
 	TCCR1B = (1<<WGM12)|(1<<WGM13)|(1<<CS10)|(1<<CS11);
@@ -29,16 +29,17 @@ void moveServo()
 {
 	// set pulse width dutycycle
 	if(rec == 'a'){
+		// 1600us
 		OCR1A = 200;
 	}
 	
 	if(rec == 'b'){
-		// 270 max
+		//  960us
 		OCR1A = 120;
 	}
 	
 	if(rec == 'c'){
-		//105 min
+		// 2164us
 		OCR1A = 270;
 	}
 }

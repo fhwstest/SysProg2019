@@ -116,15 +116,6 @@ static void writeNBytes(uint8_t *data, int dataSize)
 	}
 }
 
-template <size_t N>
-static void writeByteArray(const Array<uint8_t, N> &array)
-{
-	for (auto byte : array)
-	{
-		writeByte(byte);
-	}
-}
-
 static uint8_t readByte()
 {
 	uint8_t data{};
@@ -135,11 +126,11 @@ static uint8_t readByte()
 
 		if (bit)
 		{
-			data = (static_cast<uint8_t>(data | (1 << i)));
+			data |= (1 << i);
 		}
 		else
 		{
-			data = (static_cast<uint8_t>(data & ~(1 << i)));
+			data &= ~(1 << i);
 		}
 	}
 
@@ -154,14 +145,6 @@ static void readNBytes(uint8_t *data, int dataSize)
 	}
 }
 
-void readByteArray(char *array, int len)
-{
-	for (int i = 0, i < len, i++)
-	{
-		array[i] = readByte();
-	}
-}
-
 static float readTemp()
 {
 	const uint8_t CONVERT_TEMP_CMD = 0x44;
@@ -173,8 +156,10 @@ static float readTemp()
 	selectDevice();
 	writeByte(READ_SCRATCHPAD_CMD);
 	char scratchpad[9];
-	readByteArray(scratchpad, 9);
+	readNBytes(scratchpad, 9);
 
+
+	// shift bit out to get actual temp
 	float erg = scratchpad[0] >> 1;
 
 	if (isBitSet(scratchpad[0], 8))
@@ -198,11 +183,11 @@ static void selectDevice()
 	reset();
 	writeByte(READ_ROM_CMD);
 	char address[8];
-	readByteArray(address, 8));
+	readNBytes(address, 8));
 
 	reset();
 	writeByte(MATCH_ROM_CMD);
-	writeByteArray(address);
+	writeNBytes(address, 8);
 }
 
 static bool isBitSet(uint8_t byte, uint8_t i)
