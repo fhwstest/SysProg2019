@@ -20,6 +20,7 @@
 #define EN2 2
 
 #define SDCard PORTB
+#define BLOCKSIZE 512
 
 const int initCrc = 94;
 
@@ -42,6 +43,8 @@ void printErg(const char *msg);
 
 uint32_t uint32EndianConversion(uint32_t num);
 
+void readBlock(unit8_t *buff, const uint8_t address);
+
 int main()
 {
 	USART_Init(9600);
@@ -56,6 +59,14 @@ int main()
 
 	writeByte(1, 1);
 	printErg("Write Byte");
+
+	uint8_t data[BLOCKSIZE];
+	readBlock(data, 1);
+
+	for (uint8_t i = 0; i < BLOCKSIZE; i++)
+	{
+		USART_Transmit(data[i]);
+	}
 
 	while (1)
 		;
@@ -87,7 +98,7 @@ void initSpi()
 	/* Set MOSI and SCK etc. output, all others input */
 	DDRB = (1 << MOSI) | (1 << SCK) | (1 << EN1) | (1 << EN2) | (1 << SS);
 
-	/* Enable SPI, Master, set clock rate fck/16 */
+	/* Enable SPI, Master, set clock rate fcpu/16 */
 	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 }
 
@@ -194,7 +205,7 @@ void writeByte(uint8_t address, uint8_t value)
 
 	// send 512 bytes of data to sd card
 	SPI_MasterTransmit(value);
-	for (int i = 0; i < 511; ++i)
+	for (int i = 0; i < (BLOCKSIZE - 1); ++i)
 	{
 		SPI_MasterTransmit(0);
 	}
@@ -204,5 +215,29 @@ void setBlockLength()
 {
 	// set sd card memory block length to 512
 	const uint8_t setBlockLengthCommand = 16;
-	sendCommand(setBlockLengthCommand, 512, 0);
+	sendCommand(setBlockLengthCommand, BLOCKSIZE, 0);
+}
+
+unsigned uint8_t receiveByte()
+{
+	SPI_MasterTransmit(0xFF);
+	while (!(SPSR & (1 << SPIF))) //End of transmission flag
+		;
+	return SPDR;
+}
+
+void readBlock(unit8_t *buff, const uint8_t address)
+{
+	const uint8_t readSingleBlockCommand = 17;
+	sendCommand(readSingleBlockCommand, address, 0);
+	waitForAnswer(0xFE); // Start block token
+
+	for (int i = 0; i < BLOCKSIZE; i++)
+	{
+		buff[i] = receiveByte();
+	}
+
+	//read, but ignore 16 bit CRC
+	SPI_MasterTransmit(0xFF);
+	SPI_MasterTransmit(0xFF);
 }

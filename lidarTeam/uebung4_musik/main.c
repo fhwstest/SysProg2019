@@ -52,7 +52,6 @@ int main(void)
 {
 	init();
 	sei();
-	/* Replace with your application code */
 	while (1)
 	{
 	}
@@ -61,12 +60,12 @@ int main(void)
 void init()
 {
 	DDRB = 0xff;
-
+	// Enable Timer 1 Output Compare A Match Interrupt, Enable Timer 0 Output Compare Match Interrupt
 	TIMSK = (1 << OCIE1A) | (1 << OCIE0);
 
-	// set timers with prescaler 1024
+	// set timers with prescaler 1024, enable clear on compare match
 	TCCR1B |= (1 << CS12) | (1 << CS10) | (1 << WGM12);
-	TCCR0 |= (1 << CS02) | (CS00) | (1 << WGM01);
+	TCCR0 |= (1 << CS02) | (1 << CS00) | (1 << WGM01);
 
 	OCR1A = 10;
 }
@@ -94,7 +93,7 @@ ISR(TIMER1_COMPA_vect)
 		TIMSK |= (1 << OCIE0);
 	}
 
-	OCR0 = (F_CPU / 1024.0) / (double)(Song[Notecounter].freq) * 2.0 - 1;
+	OCR0 = (F_CPU / 1024.0) / (double)(Song[Notecounter].freq) - 1;
 	OCR1A = (F_CPU / 1024.0) * (double)(Song[Notecounter].len / 1000.0) - 1;
 
 	++Notecounter;
