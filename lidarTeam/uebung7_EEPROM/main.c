@@ -80,7 +80,7 @@ void readDataFromMem(const int address)
 
 void init()
 {
-	//TWPS1 und TWPS0 = 0, Prescaler 0
+	//TWPS1 und TWPS0 = 0, Prescaler 1
 	TWSR = 0x00;
 	TWBR = (F_CPU / I2C_SCK - 16); //I2C_SCK ist die gewünschte Frequenz
 }
